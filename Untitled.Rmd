@@ -1,0 +1,413 @@
+---
+title: "Untitled"
+author: "Gabriella Neilon"
+date: '2023-12-24'
+output: html_document
+---
+```{r}
+# Function from class
+EOM_datevec <- return_mat %>% select(date) %>% unique %>% mutate(YM = format(date, "%Y%B")) %>% group_by(YM) %>% filter(date == last(date)) %>% ungroup() %>% pull(date) %>% unique
+
+Roll_optimizer <- function(return_mat, EOM_datevec, LookBackSel = 36){
+  
+return_df_used <- return_mat %>% filter(date >= EOM_datevec %m-% months(LookBackSel))
+  
+if(return_df_used %>% nrow() < LookBackSel) return(NULL) # PRO TIP - return NULL effectively skips the iteration when binding....
+
+return_mat_Nodate <- data.matrix(return_df_used[, -1])
+# Simple Sample covariance and mean for the lookback period:
+Sigma <- RiskPortfolios::covEstimation(return_mat_Nodate)
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+
+
+My_Weights <- 
+  left_join(
+  optim_foo(Type = "mv", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+  optim_foo(Type = "minvol", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+  by = c("Tickers")) %>% 
+    left_join(.,optim_foo(Type = "erc", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+      left_join(.,optim_foo(Type = "riskeff", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+  
+  mutate(date = EOM_datevec, Look_Back_Period = LookBackSel)
+  
+}
+
+
+
+tm_Result <- 
+EOM_datevec %>% map_df(~Roll_optimizer(return_mat, EOM_datevec = ., LookBackSel = 36)) %>% rename(Name=Tickers)
+
+tm <- return_mat %>% gather(Name, Returns,-date)
+new_dat_tm <- left_join(tm,tm_Result,by=c("date", "Name"))
+
+
+
+# Calculate Portfolio Returns:
+weighted_returns_porfolio_tm <- 
+    new_dat_tm %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*minvol, na.rm =TRUE)) %>% 
+      filter(PortfolioReturn != 0)
+
+
+Cum_mv_tm <- 
+weighted_returns_porfolio_tm%>% 
+    mutate(cumreturn_mv = (cumprod(1 + PortfolioReturn))) %>% 
+    mutate(cumreturn_mv= cumreturn_mv / first(cumreturn_mv)) %>% select(-PortfolioReturn)
+
+
+data1_tm <- left_join(Cum_mv_tm,Cum_W, by="date")
+
+data2_tm <- left_join(data1_tm, Cum_rp, by="date")
+
+data3_tm <- data2_tm %>% gather(CumReturnType, Value, -date)
+
+
+plot1_tm <- data3_tm %>% ggplot() + 
+geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7, 
+    size = 1) + 
+labs(title = "Rolling 3 Year Annualized Returns of Indices", 
+    subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)", 
+    caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30), 
+    subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) + 
+    
+fmx_cols()
+
+g_finplot_tm <- finplot(plot1_tm, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T, 
+    y.pct = T, y.pct_acc = 1)
+```
+
+```{r}
+
+#NBNBNB use this one
+wts <- tm_Result[,c(6,1,3)]
+
+wts_new <- wts %>% tbl_xts(., cols_to_xts = minvol, spread_by = Name)
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+Portfolio_tm <-  Safe_Return.portfolio(R = DT, weights = wts_new, rebalance_on = "quarter", verbose=T)
+
+DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+# Clean and save portfolio returns and weights:
+W_Contribution <- 
+      Portfolio$contribution %>% xts_tbl() 
+
+W_BPWeight <- 
+      Portfolio$BOP.Weight %>% xts_tbl()  
+
+W_BPValue <- 
+      Portfolio$BOP.Value %>% xts_tbl()
+
+  
+    names(W_Contribution) <- c("date", names(Portfolio$contribution))
+    names(W_BPWeight) <- c("date", names(Portfolio$BOP.Weight))
+    names(W_BPValue) <- c("date", names(Portfolio$BOP.Value))
+
+W_BPWeight <- W_BPWeight %>% gather(Name, Weight, -date)
+W_BPValue<- W_BPValue %>% gather(Name, value_held, -date)
+W_Contribution <- W_Contribution %>% gather(Name, Contribution, -date)
+
+names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+  # Names to be replaced
+new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+
+# Replace specific column names
+W_BPWeight <- W_BPWeight %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_BPValue <-  W_BPValue %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_Contribution <- W_Contribution %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+
+df_port_return_W <- 
+      left_join(DATA,
+                W_BPWeight,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_BPValue,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_Contribution,
+                by = c("date", "Name"))
+
+```
+
+```{r}
+# combine glibal indexes with loc al SA indexes 
+d1 <- global %>%
+  select(Name, Returns, date, YM) %>%
+  spread(key = Name, value = Returns)
+
+testing <- ceiling_date(Indexes$date, "month") - days(1)
+
+Indexes$date <- testing
+
+
+
+dates <- dateconverter(as.Date("2002-02-28"),as.Date("2023-08-31"),
+    "calendarEOM")
+
+
+
+
+RSA_indexes <- Indexes %>% select(date,J433, ALBI)
+
+indexes_final <- RSA_indexes%>% filter(date %in% dates)
+
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+final_data <- combined_data %>% select(-"AfricaXSA",-"FTSE EPRA/NAREIT Developed Dividend+ Index",-"FTSE Global Core Infrastructure Net Return", -"MSCI World Emerging Market", -"US 3 Month Libor Rate", -"US Inflation Linkers", -"VIX",-"BRENT",-"SP 500") %>% gather(Name, Returns, -date,-YM) 
+
+plotdf <- 
+final_data %>% 
+# %>% group_by(Name) %>% 
+# # Epic sorcery:
+# mutate(RollRets = RcppRoll::roll_prod(1 + Returns, 36, fill = NA, 
+#     align = "right")^(12/36) - 1) %>% 
+# # Note this cool trick: it removes dates that have no
+# # RollRets at all.
+# 
+# group_by(date) %>% filter(any(!is.na(RollRets))) %>% 
+# ungroup()
+filter(Name %in%  c("Gold Spot $/Oz (GOLDS COMDTY)","GlobalAgg Unhedged USD", "MSCI ACWI", "J433", "ALBI"))
+```
+
+```{r}
+library(PortfolioAnalytics)
+#now what it the optimal weight of each equity? remember that the "limit exposure" instruction is how I am going to cap my porfolio
+
+#Getting optimal weights via Portfolio Optimization
+return_mat <- plotdf  %>% filter (date>="2002-02-28" & date<="2023-08-31") %>% select(date, Name, Returns) %>% spread(Name, Returns)
+
+# is there any NAs?
+# source("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/22581340_Financial-Econometrics/22581340_FE/code/Impute_NA_Returns.R")
+# impute_missing_returns(return_mat, impute_returns_method = "None") 
+# No Nas!!
+
+# Drop date column for this...
+return_mat_Nodate <- data.matrix(return_mat[, -1])
+
+# Simple Sample covariance and mean:
+#for safety to avoid the impact of outliers
+# Ledoit Wolf shrinkage:
+Sigma_LW <- RiskPortfolios::covEstimation(return_mat_Nodate, control = list(type = "lw"))
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+# Purely for safety reasons, to avoid a non-positive definite matrix breaking your function...
+Sigma <- as.matrix( Matrix::nearPD(Sigma_LW)$mat)
+
+#Now let's begin with other constraints to design Amat and bvec
+
+NStox <- ncol( return_mat_Nodate )
+LB = 0.01
+UB = 0.25
+meq = 1 # as only the first column of Amat is an equality (weight sum equals 1)
+
+# Additional constraints
+bond_credit_limit <- 0.25
+equities_limit <- 0.60
+commodity_limit <- 0.1
+
+
+
+# Define the new order of asset classes
+#new_order <- c("bond", "bond", "commodity", "equity", "equity")
+
+eq_const_mat<-  rbind(matrix(0, nrow = 3, ncol = 2),
+                    -diag(2))
+
+
+bond_const_mat <- rbind(matrix(0, nrow = 0, ncol = 2),
+                     -diag(2),
+                     matrix(0, nrow = 3, ncol = 2))
+
+commodity_const_mat <- rbind(matrix(0, nrow = 2, ncol = 1),
+                -1,
+                matrix(0, nrow = 2, ncol = 1))
+
+
+bvec <- c( 1, rep(LB, NStox), -rep(UB, NStox), -rep(bond_credit_limit, 2), -rep(commodity_limit,1), -rep(equities_limit, 2))
+
+
+Amat <- cbind(1, diag(NStox), -diag(NStox),-bond_const_mat,commodity_const_mat ,eq_const_mat )
+  # Adjustment for the equities limit
+  
+# we will use the quadprog package"
+  w.opt <- 
+    quadprog::solve.QP(Dmat = Sigma,
+                            dvec = Mu, 
+                            Amat = Amat, 
+                            bvec = bvec, 
+                            meq = meq)$solution
+
+ result.QP <- tibble(stocks = colnames(Sigma), weight = w.opt) 
+ 
+ 
+Type = "minvol"
+      Opt_W <- 
+        RiskPortfolios::optimalPortfolio(mu = Mu, Sigma = Sigma, 
+                control = list(type = Type, constraint = 'user', 
+                               LB = rep(LB, ncol(Sigma)), 
+                               UB = rep(UB, ncol(Sigma)),
+             bond_credit_limit=rep(bond_credit_limit,ncol(Sigma)),
+                commodity_limit=rep(commodity_limit, ncol(Sigma)),
+                equities_limit=rep(equities_limit,ncol(Sigma))))
+
+return_mat %>% gather(Name,Returns,-date)
+```
+```{r}
+
+Rebalance_Quarterly <- 
+
+  return_mat %>%
+
+  mutate(Year = format(date, "%Y"), Month = format(date, "%b"), Day = format(date, "%a")) %>%
+
+  dplyr::filter(Month %in% c("Mar", "Jun", "Sep", "Dec")) %>%
+
+  select(date, Year,  Month, Day ) %>% unique() %>%
+
+  group_by(Year, Month) %>%
+
+  filter( date == last(date)) %>%
+
+  pull(date)
+
+rebalance_returns <- function(data, fund_name, w_cap) {
+    rebalance_col <- data %>%
+        rename("weight" = {{ fund_name }}) %>%
+        filter(date %in% Rebalance_Quarterly) %>%
+        mutate(RebalanceTime = format(date, "%Y%B%A")) %>%
+        group_by(RebalanceTime) %>%
+        arrange(desc(weight)) %>%
+        ungroup() %>%
+        arrange(date) %>%
+        select(date,Name, weight, RebalanceTime)
+    
+    # df_Cons <- rebalance_col %>% filter(date == first(date))
+    # W_Cap = 0.8
+    Proportional_Cap_Foo <- function(df_Cons, W_Cap = 0.05){
+        
+        # Let's require a specific form from the user... Alerting when it does not adhere this form
+        if( !"weight" %in% names(df_Cons)) stop("... for Calc capping to work, provide weight column called 'weight'")
+        
+        if( !"date" %in% names(df_Cons)) stop("... for Calc capping to work, provide date column called 'date'")
+        
+        if( !"Tickers" %in% names(df_Cons)) stop("... for Calc capping to work, provide id column called 'Tickers'")
+        
+        # First identify the cap breachers...
+        Breachers <-
+            df_Cons %>% filter(weight > W_Cap) %>% pull(Tickers)
+        
+        # Now keep track of breachers, and add to it to ensure they remain at 10%:
+        if(length(Breachers) > 0) {
+            
+            while( df_Cons %>% filter(weight > W_Cap) %>% nrow() > 0 ) {
+                
+                
+                df_Cons <-
+                    
+                    bind_rows(
+                        
+                        df_Cons %>% filter(Tickers %in% Breachers) %>% mutate(weight = W_Cap),
+                        
+                        df_Cons %>% filter(!Tickers %in% Breachers) %>%
+                            mutate(weight = (weight / sum(weight, na.rm=T)) * (1-length(Breachers)*W_Cap) )
+                        
+                    )
+                
+                Breachers <- c(Breachers, df_Cons %>% filter(weight > W_Cap) %>% pull(Tickers))
+                
+            }
+            
+            if( sum(df_Cons$weight, na.rm=T) > 1.001 | sum(df_Cons$weight, na.rm=T) < 0.999 | max(df_Cons$weight, na.rm = T) > W_Cap) {
+                
+                stop( glue::glue("For the Generic weight trimming function used: the weight trimming causes non unit
+      summation of weights for date: {unique(df_Cons$date)}...\n
+      The restriction could be too low or some dates have extreme concentrations...") )
+                
+            }
+            
+        } else {
+            
+        }
+        
+        df_Cons
+        
+    }
+    # Now, to map this across all the dates, we can use purrr::map_df as follows:
+    Capped_df <- rebalance_col %>%
+        # Split our df into groups (where the groups here are the rebalance dates:
+        group_split(RebalanceTime) %>%
+        # Apply the function Proportional_Cap_Foo to each rebalancing date:
+        map_df(~Proportional_Cap_Foo(., W_Cap = w_cap)) %>% select(-RebalanceTime)
+    
+    wts <- Capped_df %>%
+        tbl_xts(cols_to_xts = weight, spread_by = Tickers)
+    
+    rts <- data %>%
+        filter(Tickers %in% unique(Capped_df$Tickers)) %>%
+        tbl_xts(cols_to_xts = Return, spread_by = Tickers)
+    
+    wts[is.na(wts)] <- 0
+    rts[is.na(rts)] <- 0
+    
+    Idx <- rmsfuns::Safe_Return.portfolio(R = rts, weights = wts, lag_weights = TRUE) %>%
+        # Let's make this a tibble:
+        xts_tbl() %>%
+        rename({{ fund_name }} := "portfolio.returns")
+    
+    return(Idx)
+}
+
+
+
+```
+
+```{r}
+rebalance_returns <- function(data, fund_name, w_cap) {
+    rebalance_col <- data %>%
+        rename("weight" = {{ fund_name }}) %>%
+        filter(date %in% Rebalance_Quarterly) %>%
+        mutate(RebalanceTime = format(date, "%Y%B%A")) %>%
+        group_by(RebalanceTime) %>%
+        arrange(desc(weight)) %>%
+        ungroup() %>%
+        arrange(date) %>%
+        select(date, Name, weight, RebalanceTime)
+    
+    Proportional_Cap_Foo <- function(data, W_Cap = 0.05, Min_Alloc = 0.01, Bond_Cap = 0.25, Equity_Cap = 0.6, Commodity_Cap = 0.1) {
+        
+        if (!"weight" %in% names(data)) stop("... for Calc capping to work, provide weight column called 'weight'")
+        if (!"date" %in% names(data)) stop("... for Calc capping to work, provide date column called 'date'")
+        if (!"Name" %in% names(data)) stop("... for Calc capping to work, provide Name column called 'Name'")
+        
+        data <- data %>%
+            mutate(
+                weight = pmin(pmax(weight, Min_Alloc), w_cap),  # Caps min/max allocation
+                weight = case_when(
+                    Name == c("ALBI","GlobalAgg Unhedged USD") ~ pmin(weight, Bond_Cap),  # Cap on bonds
+                    Name == c("J433","MSCI ACWI") ~ pmin(weight, Equity_Cap),  # Cap on equities
+                    Name == "Gold Spot $/Oz (GOLDS COMDTY)" ~ pmin(weight, Commodity_Cap),  # Cap on commodities
+                    TRUE ~ weight
+                )
+            )
+        
+    }
+    
+    Capped_df <- rebalance_col %>%
+        group_split(RebalanceTime) %>%
+        map_df(~Proportional_Cap_Foo(.)) %>% select(-RebalanceTime)
+    
+    # Rest of your code remains unchanged...
+    # ...
+}
+
+
+
+# Applying the rebalance_returns function
+result <- rebalance_returns(weights_minvol_new , fund_name = "Weights", w_cap = 0.25)
+
+```
+

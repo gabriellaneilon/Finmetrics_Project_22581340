@@ -1,0 +1,743 @@
+\documentclass[12pt,preprint, authoryear]{elsarticle}
+
+\usepackage{lmodern}
+%%%% My spacing
+\usepackage{setspace}
+\setstretch{1.2}
+\DeclareMathSizes{12}{14}{10}{10}
+
+% Wrap around which gives all figures included the [H] command, or places it "here". This can be tedious to code in Rmarkdown.
+\usepackage{float}
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][2] {
+    \expandafter\origfigure\expandafter[H]
+} {
+    \endorigfigure
+}
+
+\let\origtable\table
+\let\endorigtable\endtable
+\renewenvironment{table}[1][2] {
+    \expandafter\origtable\expandafter[H]
+} {
+    \endorigtable
+}
+
+
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+
+\usepackage{amssymb, amsmath, amsthm, amsfonts}
+
+\def\bibsection{\section*{References}} %%% Make "References" appear before bibliography
+
+
+\usepackage[round]{natbib}
+
+\usepackage{longtable}
+\usepackage[margin=2.3cm,bottom=2cm,top=2.5cm, includefoot]{geometry}
+\usepackage{fancyhdr}
+\usepackage[bottom, hang, flushmargin]{footmisc}
+\usepackage{graphicx}
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{1.3ex plus 0.5ex minus 0.3ex}
+\usepackage{textcomp}
+\renewcommand{\headrulewidth}{0.2pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+\usepackage{array}
+\newcolumntype{x}[1]{>{\centering\arraybackslash\hspace{0pt}}p{#1}}
+
+%%%%  Remove the "preprint submitted to" part. Don't worry about this either, it just looks better without it:
+\makeatletter
+\def\ps@pprintTitle{%
+  \let\@oddhead\@empty
+  \let\@evenhead\@empty
+  \let\@oddfoot\@empty
+  \let\@evenfoot\@oddfoot
+}
+\makeatother
+
+ \def\tightlist{} % This allows for subbullets!
+
+\usepackage{hyperref}
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=blue,
+            pdfborder={0 0 0}}
+
+
+% The following packages allow huxtable to work:
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{calc}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{caption}
+
+
+\newenvironment{columns}[1][]{}{}
+
+\newenvironment{column}[1]{\begin{minipage}{#1}\ignorespaces}{%
+\end{minipage}
+\ifhmode\unskip\fi
+\aftergroup\useignorespacesandallpars}
+
+\def\useignorespacesandallpars#1\ignorespaces\fi{%
+#1\fi\ignorespacesandallpars}
+
+\makeatletter
+\def\ignorespacesandallpars{%
+  \@ifnextchar\par
+    {\expandafter\ignorespacesandallpars\@gobble}%
+    {}%
+}
+\makeatother
+
+\newenvironment{CSLReferences}[2]{%
+}
+
+\urlstyle{same}  % don't use monospace font for urls
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{5}
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+
+%%% Include extra packages specified by user
+\usepackage{amsmath}\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{longtable}
+\usepackage{colortbl}
+\usepackage{array}
+
+%%% Hard setting column skips for reports - this ensures greater consistency and control over the length settings in the document.
+%% page layout
+%% paragraphs
+\setlength{\baselineskip}{12pt plus 0pt minus 0pt}
+\setlength{\parskip}{12pt plus 0pt minus 0pt}
+\setlength{\parindent}{0pt plus 0pt minus 0pt}
+%% floats
+\setlength{\floatsep}{12pt plus 0 pt minus 0pt}
+\setlength{\textfloatsep}{20pt plus 0pt minus 0pt}
+\setlength{\intextsep}{14pt plus 0pt minus 0pt}
+\setlength{\dbltextfloatsep}{20pt plus 0pt minus 0pt}
+\setlength{\dblfloatsep}{14pt plus 0pt minus 0pt}
+%% maths
+\setlength{\abovedisplayskip}{12pt plus 0pt minus 0pt}
+\setlength{\belowdisplayskip}{12pt plus 0pt minus 0pt}
+%% lists
+\setlength{\topsep}{10pt plus 0pt minus 0pt}
+\setlength{\partopsep}{3pt plus 0pt minus 0pt}
+\setlength{\itemsep}{5pt plus 0pt minus 0pt}
+\setlength{\labelsep}{8mm plus 0mm minus 0mm}
+\setlength{\parsep}{\the\parskip}
+\setlength{\listparindent}{\the\parindent}
+%% verbatim
+\setlength{\fboxsep}{5pt plus 0pt minus 0pt}
+
+
+
+\begin{document}
+
+
+
+\begin{frontmatter}  %
+
+\title{Optimizing Portfolio Strategies: A Comparative Study of
+Mean-Variance, Minimum-Variance, and Risk Parity Portfolios}
+
+% Set to FALSE if wanting to remove title (for submission)
+
+
+
+
+\author[Add1]{Gabriella Neilon}
+\ead{22581340@sun.ac.za}
+
+
+
+
+
+\address[Add1]{Stellenbosch University}
+
+\cortext[cor]{Corresponding author: Gabriella Neilon}
+
+\begin{abstract}
+\small{
+This study conducts a comprehensive examination of portfolio
+optimization strategies, focusing on Mean-Variance Optimization (MVO),
+Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios.
+Acknowledging the foundational principles of Modern Portfolio Theory
+(MPT), the analysis critiques MVO's concentration issues and MVP's
+struggles with uneven weight distributions. Subsequently, the study
+explores the Risk Parity Portfolio's potential in mitigating asset
+concentration and optimizing risk diversification. The paper utilizes
+various indices to construct portfolios, employing a range of
+optimization techniques and considering global assumptions. The results
+reveal nuanced insights into each portfolio's performance, risk-adjusted
+returns, and weight allocations across asset classes. This comparative
+study highlights the strengths and weaknesses of each strategy, shedding
+light on their suitability in diverse market conditions.
+}
+\end{abstract}
+
+\vspace{1cm}
+
+
+
+
+
+\vspace{0.5cm}
+
+\end{frontmatter}
+
+\setcounter{footnote}{0}
+
+
+\renewcommand{\contentsname}{Table of Contents}
+{\tableofcontents}
+
+%________________________
+% Header and Footers
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{fancy}
+\chead{}
+\rhead{}
+\lfoot{}
+\rfoot{\footnotesize Page \thepage}
+\lhead{}
+%\rfoot{\footnotesize Page \thepage } % "e.g. Page 2"
+\cfoot{}
+
+%\setlength\headheight{30pt}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%________________________
+
+\headsep 35pt % So that header does not go over title
+
+
+
+
+\newpage
+
+\newpage
+
+\hypertarget{introduction}{%
+\section*{Introduction}\label{introduction}}
+\addcontentsline{toc}{section}{Introduction}
+
+The inception of Modern Portfolio Theory (MPT) by Markowitz in 1952
+revolutionized portfolio optimization, emphasizing the dual goals of
+maximizing returns while minimizing risks. However, the application of
+MPT strategies such as Mean-Variance Optimization (MVO) and
+Minimum-Variance Portfolio (MVP) has faced criticism due to
+concentration issues and challenges in risk diversification. To address
+these concerns, Risk Parity Portfolios emerged as an alternative
+approach, aiming to balance risk contributions across assets. This paper
+investigates and compares these strategies, aiming to provide a
+comprehensive understanding of their efficacy and limitations in modern
+financial landscapes.
+
+\hypertarget{literature-review}{%
+\section{\texorpdfstring{Literature Review
+\label{-}}{Literature Review }}\label{literature-review}}
+
+\hypertarget{mean-variance-optimization-mvo}{%
+\subsection{Mean-Variance Optimization
+(MVO)}\label{mean-variance-optimization-mvo}}
+
+The concept of \emph{Modern Portfolio Theory} traces its origins to the
+pioneering work by Markowitz in 1952. This theory emphasizes the dual
+objectives of maximizing expected returns while minimizing risks,
+standing as the cornerstone in portfolio optimization
+(\protect\hyperlink{ref-markowits1952portfolio}{Markowits, 1952}). The
+approach employs the fundamental principles of portfolio diversification
+and leverages covariance relationships. Portfolio diversification,
+integral to risk reduction, is crucial as portfolio investment risk
+(variance) is impacted by both individual asset variances and
+covariances in a bipartite manner. However, the risk mitigation aspect
+of portfolio diversification should be approached judiciously, as its
+primary potential lies in mitigating unsystematic risk rather than
+systematic risk.
+
+The primary aim of mean-variance optimization is to minimize portfolio
+volatility while targeting an expected return. However, mean-variance
+optimization often leads to highly concentrated portfolios, making them
+vulnerable to abrupt changes in allocations due to minor input
+variations. There exists confusion between optimizing volatility and
+risk diversification (\protect\hyperlink{ref-bruder2012managing}{Bruder
+\& Roncalli, 2012}).
+
+Despite its foundational principles, mean--variance optimization (MVO)
+faces scrutiny when confronted with contemporary challenges,
+particularly financial crises. Critics argue that it overlooks risk
+diversification and only takes the portfolio's overall risk into
+account, which results in an excessive concentration of risk in a small
+number of assets---as was shown during the 2008 financial crisis. This
+critique, additionally, questions the reliance of Modern Portfolio
+Theory (MPT) on historical data as is also it is highly sensitive to
+parameter estimation errors , suggesting its potential irrelevance in
+current and future markets. Consequently, MPT's predictive capacity
+becomes less dependable and more susceptible to deviations from actual
+market behavior
+(\protect\hyperlink{ref-steinbach2001markowitz}{Steinbach, 2001}).
+Another area of criticism pertains to Markowitz's definition of risk,
+often equated with ``volatility'' (both upside and downside). This
+overlooks the perspective that investors aren't inherently risk-averse;
+rather, they exhibit a tendency toward aversion to losses, therefore in
+actuality, the variance is a poor indicator of risk because it penalizes
+both desired low losses and unwanted large losses. As Harold Evensky, a
+renowned financial planner and the founder of Evensky \& Katz Foldes
+Wealth Management, states, \emph{``Investors aren't risk-averse, they're
+loss-averse.''}
+
+\hypertarget{minimum-variance-portfolio-mvp}{%
+\subsection{Minimum-Variance Portfolio
+(MVP)}\label{minimum-variance-portfolio-mvp}}
+
+The Minimum-Variance Portfolio (MVP) seeks to create a portfolio with
+the lowest possible risk among a set of assets without emphasizing
+explicit return predictions, contrasting with the Mean-Variance
+Optimization (MVO) method.
+
+In the MVP, the primary aim is to allocate weights to assets to minimize
+overall portfolio variance. However, this approach tends to concentrate
+on low-volatility assets, resulting in less diversified portfolios with
+uneven weight distributions
+(\protect\hyperlink{ref-lohre2014diversifying}{Lohre, Opfer \& Orszag,
+2014}).
+
+This portfolio is at the left-most end of the mean-variance efficient
+frontier possessing the unique trait of having security weights
+independent of expected returns on individual securities. Although all
+portfolios on the efficient frontier aim to minimize risk for a given
+return, the minimum-variance portfolio achieves this without considering
+expected returns directly
+(\protect\hyperlink{ref-clarke2013risk}{Clarke, De Silva \& Thorley,
+2013}).
+
+Despite its potential benefits, minimum-variance portfolios commonly
+struggle with concentration issues
+(\protect\hyperlink{ref-maillard2010properties}{Maillard, Roncalli \&
+Teïletche, 2010}). Ans across different portfolio components.
+
+\hypertarget{risk-parity-portfolios}{%
+\subsection{Risk Parity Portfolios}\label{risk-parity-portfolios}}
+
+The criticism of MVO and MVP introduces alternative portfolio
+optimization strategies, with a particular focus on risk budgeting (or
+diversified risk parity strategies). This strategy is widely accepted in
+both academic and professional circles
+(\protect\hyperlink{ref-bruder2012managing}{Bruder \& Roncalli, 2012};
+\protect\hyperlink{ref-choueifaty2008toward}{Choueifaty \& Coignard,
+2008}; \protect\hyperlink{ref-lohre2012diversified}{Lohre, Neugebauer \&
+Zimmer, 2012}; \protect\hyperlink{ref-maillard2010properties}{Maillard
+\emph{et al.}, 2010}; \protect\hyperlink{ref-meucci2005risk}{Meucci,
+2005}, \protect\hyperlink{ref-meucci2009managing}{2009}).
+
+The resolution to concentrated risk in a select few assets observed in
+both Mean-Variance Optimization (MVO) and Minimum Variance Portfolio
+(MVP) strategies appears to lie in the adoption of a Risk Parity
+portfolio. Maillard \emph{et al.}
+(\protect\hyperlink{ref-maillard2010properties}{2010}) delves into the
+theoretical properties of the risk budgeting portfolio, demonstrating
+its volatility positioning between the minimum variance and weight
+budgeting portfolios Unlike the minimum variance portfolio, the Risk
+Parity portfolio is invested in all assets. While its volatility is
+greater than the minimum variance portfolio but smaller than the 1/N
+strategy, the Risk Parity portfolio maintains more balanced risk
+contributions, even though it ranks similarly to a MVP in terms of
+weight distribution.
+
+In contrast to minimum-variance portfolios that equalize the marginal
+contributions of each asset to portfolio risk, risk parity portfolios
+equalize the total risk contribution, minimum-variance portfolios,
+positioning risk parity portfolios slightly inside the efficient
+frontier rather than on it
+(\protect\hyperlink{ref-clarke2013risk}{Clarke \emph{et al.}, 2013:
+40}).
+
+And unlike Mean-Variance Optimization (MVO), risk parity portfolios do
+not explicitly prioritize the expected return or the risk of a
+portfolio. Nonetheless, they do necessitate a positive expected return
+(\protect\hyperlink{ref-fisher2015risk}{Fisher, Maymin \& Maymin, 2015:
+42}). Furthermore, the purpose of risk parity is not solely to minimize
+portfolio risk like standard MVO portfolios. Instead, by equalizing
+asset risk contributions, risk parity aims for optimal risk
+diversification (\protect\hyperlink{ref-costa2020robust}{Costa \& Kwon,
+2020}).
+
+Initially, a risk parity portfolio defined weights based on asset class
+inverse volatility, disregarding their correlations
+(\protect\hyperlink{ref-clarke2013risk}{Clarke \emph{et al.}, 2013:
+39}). Subsequently, Qian
+(\protect\hyperlink{ref-qian2005financial}{2005}) developed a more
+comprehensive definition that considers correlations and grounds the
+property in a risk budget where weights are adjusted to ensure each
+asset contributes equally to portfolio risk.
+
+They allocate weights to different asset classes based on their risk
+measures, ensuring each asset contributes an equal risk amount to the
+portfolio and reducing estimation noise
+(\protect\hyperlink{ref-maillard2010properties}{Maillard \emph{et al.},
+2010}). This approach emphasizes risk allocation, typically defined as
+volatility, rather than capital allocation. By adjusting asset
+allocations to the same risk level, the risk parity portfolio can
+achieve a higher Sharpe ratio and better withstand market downturns
+compared to traditional portfolios. It ensures a well-diversified
+portfolio by requiring each asset to contribute the same level of risk
+(\protect\hyperlink{ref-merton1980estimating}{Merton, 1980}).
+
+Furthermore, Ardia, Bolliger, Boudt \& Gagnon-Fleury
+(\protect\hyperlink{ref-ardia2017impact}{2017}) demonstrate that risk
+parity portfolios are less susceptible to covariance misspecification
+compared to other risk-based investment strategies.
+
+Nevertheless, the Risk Parity portfolio is not devoid of shortcomings.
+Maillard \emph{et al.}
+(\protect\hyperlink{ref-maillard2010properties}{2010: 16}) points out
+that even though minimum variance portfolios face constraints due to
+asset concentration, risk parity portfolios lack adequate risk
+oversight. However, implementing this approach optimizes risk
+distribution, acting as a balanced risk filter that prevents any single
+asset from dominating the portfolio, as observed in the case of the MVP.
+
+\hypertarget{data-and-methodology}{%
+\section{\texorpdfstring{Data and Methodology
+\label{-}}{Data and Methodology }}\label{data-and-methodology}}
+
+This paper aligns closely with Maillard \emph{et al.}
+(\protect\hyperlink{ref-maillard2010properties}{2010}) by constructing a
+G\emph{lobal diversified portfolio} and utilizes monthly data provided
+by Katzke (\protect\hyperlink{ref-katzke2023portfoliocourse}{2023a}),
+focusing on various indices including the Morgan Stanley Capital
+International All Country World Index (``MSCI ACWI''), the Gold Spot
+rate (``Gold Spot \$/Oz''), the Bloomberg Global Aggregate Bond Index
+(``GlobalAgg Unhedged USD''), the Capped SWIX All Share Index
+(``J433''), and the FTSE/JSE All Bond Index (``ALBI''). The analysis
+aims to compare various portfolio optimization strategies. Utilizing a
+standard shrinkage technique, covariance matrices are estimated for all
+strategies (\protect\hyperlink{ref-chaves2011risk}{Chaves, Hsu, Li \&
+Shakernia, 2011}).
+
+The study adopts several global assumptions: (1) full investment
+(\(\boldsymbol{\omega^1} 1=1\)), (2) a long-only
+strategy(\(\boldsymbol{\omega} \ge 0\)). All portfolios undergo
+quarterly rebalancing, with an upper limit of 25\% and a lower bound of
+1\% applied to all asset classes. Furthermore, Bonds are capped at 25\%,
+Equities at 60\%, and Gold at 10\% exposure.
+
+The analysis commences with a \textnormal{na\"{i}ve} \(\frac{1}{N}\) ,
+assigning equal weights to asset classes. Subsequently, Minimum Variance
+Optimization (MVO) and Minimum Variance Portfolio (MVP) techniques are
+implemented. Equations representing the minimum variance portfolios are
+detailed, encompassing both MVP and MVO, as provided by
+(\protect\hyperlink{ref-katzke2023portfolio}{Katzke, 2023b}):
+
+\begin{align}
+\frac{1}{2} \boldsymbol{\omega^T*Dmat*\omega}=\boldsymbol{dvec^T\omega} \\
+s.t. \ \boldsymbol{Amat * \omega \ge bvec}\\
+\end{align}
+
+\begin{align}
+ \boldsymbol{\omega_{mvp}}= arg \min \boldsymbol{\omega' \Sigma\omega} \\
+  s.t. \sum_{n=1}^{N} \omega_i = 1 \ and\ \omega \ge 0
+\end{align}
+
+\begin{align}
+ \boldsymbol{\omega_{mvp}}= arg \min \boldsymbol{\omega' \Sigma\omega} \\
+  s.t. \sum_{n=1}^{N} \omega_i = 1 \ and\ \omega \ge 0
+\end{align}
+
+\begin{align}
+ \boldsymbol{\omega_{mvo}}= arg\max\ \ \boldsymbol{\mu}^T\omega-\lambda\boldsymbol{\omega^T\Sigma\omega} \\
+  s.t. \sum_{n=1}^{N} \omega_i = 1 \ and\ \omega \ge 0
+\end{align}
+
+To ensure robustness against outliers in the dataset, a covariance
+matrix shrinkage approach, advocated by {[}Ledoit \& Wolf
+(\protect\hyperlink{ref-ledoit2003improved}{2003}), is applied.
+Shrinkage serves to minimize the impact of outliers, enhancing the
+stability of covariance estimates.
+
+\begin{align}
+\hat{\Sigma}^{Shrunk}=(1-\rho)\ *  \hat{\Sigma} \ + \rho \ * T\\
+with \ T= \frac{1}{N}Tr \times I
+\end{align}
+
+Moving to risk parity, the portfolio setup involves optimizing risk
+contribution through weight allocations, ensuring proportional risk
+distribution among assets. The process for equalizing risk contributions
+is delineated, highlighting the attempt to balance risks across the
+portfolio (\protect\hyperlink{ref-RPP}{Vinícius \& Palomar, 2019}).
+
+The volatility of the portfolio
+\(\sigma(\boldsymbol{w})=\sqrt{\boldsymbol{w^t\Sigma w}}\), the risk
+contribution of the \(i\)th asset to the total risk is defined as:
+
+\(RC_i=\frac{w_i((\boldsymbol{\Sigma w}))i}{\sqrt{\boldsymbol{w^t\Sigma w}}}\)
+which satisfies \(\sum_{i=1}^{N} RC_i = \sigma(\boldsymbol{w})\). The
+relative or marginal risk contribution (RRC) is a normalized version so
+that \(\sum_{i=1}^{N} RRC_i = 1\).
+
+Therefore the risk parity profile which attempts to equalize the risk
+contributions is: \(RC_i=\frac{1}{N}\sigma (\boldsymbol{w})\)
+
+The risk budget constraint attempts to allocate the risk according to
+the risk profile determined by the weights \(\boldsymbol{b}\) (with
+\(\boldsymbol{1}^T \boldsymbol{b} =1\) and \(\boldsymbol{b} \ge 0\)) so
+that it can be expressed as \(RC_i=b_i\sigma (\boldsymbol{w})\)
+
+For the \textnormal{na\"{i}ve} diagonal formulation the constraints are
+\(\boldsymbol{1}^T \boldsymbol{w} =1\) and \(\boldsymbol{w} \ge 0\))
+which will state that the portfolio is inversely proportional to the
+assets' volatilities. Mathematically,
+
+\begin{align}
+\boldsymbol{w} =\frac{\boldsymbol{\sigma}^{-1}}{\boldsymbol{1}^T \boldsymbol{\sigma}^{-1}}
+\end{align}
+
+where \(\boldsymbol{\sigma^2}=Diag(\boldsymbol{\Sigma})\). Therefore,
+lower weights are given to high volatility assets and higher weights to
+low volatility assets. This is often referred to as ``equal volatility''
+portfolio. Creating an ``equal volatility'' portfolio involves selecting
+and assigning weights to individual assets in such a way that, when
+combined, each asset's volatility contributes equally to the total
+volatility of the portfolio. This approach aims to mitigate the impact
+of any single asset's volatility on the overall risk of the portfolio,
+potentially providing a more diversified and risk-balanced investment
+strategy. \(sd(w_i r_i)=w_i \sigma_i=\frac{1}{N}\)
+
+Adding the additional constraints we get:
+
+\begin{align}
+\min_{w}\ R(\boldsymbol{w}) + \lambda F(\boldsymbol{w})  \\
+s.t.\ \boldsymbol{Cw}=\boldsymbol{c}, \boldsymbol{Dw}\le\boldsymbol{d}
+\end{align}
+
+\hypertarget{results}{%
+\section{\texorpdfstring{Results \label{-}}{Results }}\label{results}}
+
+In comparison to other portfolios, the \(\frac{1}{N}\) portfolio is
+outperformed by the MVP and MVO in terms of the Sharpe Ratio. On the
+other hand, the Risk Parity Portfolio, along with the MVO, demonstrates
+superior annualized returns, consistent with the findings of Maillard
+\emph{et al.} (\protect\hyperlink{ref-maillard2010properties}{2010}).
+Notably, the Risk Parity Portfolio demonstrates extensive weight
+allocations across most asset classes. However, a noteworthy observation
+emerges in the allocation pattern regarding the `ALBI' asset class.
+Despite its relatively lower risk contribution, this class holds a
+significant weight in the portfolio, showcasing the intuitive nature of
+the Risk Parity strategy. In contrast, the MVO aggressively targets
+equities and gold but overlooks `ALBI.'
+
+Nevertheless, the considerable weight allocation towards equities in the
+Risk Parity Portfolio raises questions. This anomaly might be attributed
+to the chosen `asset' classes, primarily composed of indexes and hence
+exhibiting more stability. However, in a `real-life' portfolio
+comprising individual assets, this allocation might differ. This aligns
+with @Chaves \emph{et al.}
+(\protect\hyperlink{ref-chaves2011risk}{2011})'s insight, indicating
+Risk Parity's sensitivity to asset selection, which remains more art
+than science.
+
+Across portfolio management, Mean-Variance Optimization (MVO) and Risk
+Parity strategies emerge as prominent contenders in cumulative returns
+and annualized performance. However, when assessing portfolios based on
+risk-adjusted performance, the Minimum-Variance Portfolio (MVP) and
+Mean-Variance strategy take the lead, particularly excelling in the
+Sharpe ratio. This ratio, which balances return against risk, places
+these portfolios at the forefront in delivering optimal returns
+considering inherent investment risks, aligning with Chaves \emph{et
+al.} (\protect\hyperlink{ref-chaves2011risk}{2011})'s conclusions.
+
+Although the Risk Parity Portfolio boasts substantial annualized
+returns, it lags in the Sharpe ratio department.
+
+Upon analyzing risk distribution across principal portfolios, the
+\(\frac{1}{N}\) strategy predominantly budgets risk toward equities,
+implying a high equity risk. Furthermore, it aligns with the typical
+weight distribution of minimum variance, heavily concentrated in
+low-risk asset classes like bonds, as found in
+(\protect\hyperlink{ref-lohre2014diversifying}{Lohre \emph{et al.},
+2014}).
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure1-1} 
+
+}
+
+\caption{Relative risk contribution and Weights allocation of different portfolios \label{Figure1}}\label{fig:Figure1}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure2-1} 
+
+}
+
+\caption{Cumulative Returns \label{Figure2}}\label{fig:Figure2}
+\end{figure}
+
+\begin{longtable}{lrr}
+\caption*{
+{\large Portfolio Performance}
+} \\ 
+\toprule
+Portfolio & Returns (Ann.) & Sharpe Ratio (Ann.) \\ 
+\midrule\addlinespace[2.5pt]
+Equally Weighted & 0.09 & 0.49 \\ 
+Minimum-Variance & 0.09 & 0.5 \\ 
+Mean-Variance & 0.1 & 0.56 \\ 
+Risk Parity & 0.1 & 0.46 \\ 
+\bottomrule
+\end{longtable}
+
+\hypertarget{conclusion}{%
+\section*{Conclusion}\label{conclusion}}
+\addcontentsline{toc}{section}{Conclusion}
+
+In this comparative analysis, I scrutinized Mean-Variance Optimization
+(MVO), Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios. The
+findings unveiled the strengths and weaknesses inherent in each
+strategy. While MVO and MVP demonstrated superior risk-adjusted
+performance and concentration issues, the Risk Parity Portfolio
+exhibited balanced risk contributions across assets, albeit with certain
+sensitivity to asset selection. The study highlights the need for a
+nuanced approach in portfolio optimization, considering both returns and
+risk diversification. Such insights contribute significantly to
+navigating the complexities of contemporary financial markets and aid in
+constructing more robust investment strategies.
+
+\hfill
+
+\newpage
+
+\newpage
+
+\hypertarget{references}{%
+\section*{References}\label{references}}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-ardia2017impact}{}}%
+Ardia, D., Bolliger, G., Boudt, K. \& Gagnon-Fleury, J.-P. 2017. The
+impact of covariance misspecification in risk-based portfolios.
+\emph{Annals of Operations Research}. 254:1--16.
+
+\leavevmode\vadjust pre{\hypertarget{ref-bruder2012managing}{}}%
+Bruder, B. \& Roncalli, T. 2012. Managing risk exposures using the risk
+budgeting approach. \emph{Available at SSRN 2009778}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-chaves2011risk}{}}%
+Chaves, D., Hsu, J., Li, F. \& Shakernia, O. 2011. Risk parity portfolio
+vs. Other asset allocation heuristic portfolios. \emph{Journal of
+Investing}. 20(1):108.
+
+\leavevmode\vadjust pre{\hypertarget{ref-choueifaty2008toward}{}}%
+Choueifaty, Y. \& Coignard, Y. 2008. Toward maximum diversification.
+\emph{The Journal of Portfolio Management}. 35(1):40--51.
+
+\leavevmode\vadjust pre{\hypertarget{ref-clarke2013risk}{}}%
+Clarke, R., De Silva, H. \& Thorley, S. 2013. Risk parity, maximum
+diversification, and minimum variance: An analytic perspective.
+\emph{The Journal of Portfolio Management}. 39(3):39--53.
+
+\leavevmode\vadjust pre{\hypertarget{ref-costa2020robust}{}}%
+Costa, G. \& Kwon, R. 2020. A robust framework for risk parity
+portfolios. \emph{Journal of Asset Management}. 21(5):447--466.
+
+\leavevmode\vadjust pre{\hypertarget{ref-fisher2015risk}{}}%
+Fisher, G.S., Maymin, P.Z. \& Maymin, Z.G. 2015. Risk parity optimality.
+\emph{The Journal of Portfolio Management}. 41(2):42--56.
+
+\leavevmode\vadjust pre{\hypertarget{ref-katzke2023portfoliocourse}{}}%
+Katzke, N.F. 2023a.
+
+\leavevmode\vadjust pre{\hypertarget{ref-katzke2023portfolio}{}}%
+Katzke, N.F. 2023b. {[}Online{]}, Available:
+\url{https://www.fmx.nfkatzke.com/posts/2020-08-07-practical-3/}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-ledoit2003improved}{}}%
+Ledoit, O. \& Wolf, M. 2003. Improved estimation of the covariance
+matrix of stock returns with an application to portfolio selection.
+\emph{Journal of empirical finance}. 10(5):603--621.
+
+\leavevmode\vadjust pre{\hypertarget{ref-lohre2012diversified}{}}%
+Lohre, H., Neugebauer, U. \& Zimmer, C. 2012. Diversified risk parity
+strategies for equity portfolio selection. \emph{The Journal of
+Investing}. 21(3):111--128.
+
+\leavevmode\vadjust pre{\hypertarget{ref-lohre2014diversifying}{}}%
+Lohre, H., Opfer, H. \& Orszag, G. 2014. Diversifying risk parity.
+\emph{Journal of Risk}. 16(5):53--79.
+
+\leavevmode\vadjust pre{\hypertarget{ref-maillard2010properties}{}}%
+Maillard, S., Roncalli, T. \& Teïletche, J. 2010. The properties of
+equally weighted risk contribution portfolios. \emph{The Journal of
+Portfolio Management}. 36(4):60--70.
+
+\leavevmode\vadjust pre{\hypertarget{ref-markowits1952portfolio}{}}%
+Markowits, H.M. 1952. Portfolio selection. \emph{Journal of finance}.
+7(1):71--91.
+
+\leavevmode\vadjust pre{\hypertarget{ref-merton1980estimating}{}}%
+Merton, R.C. 1980. On estimating the expected return on the market: An
+exploratory investigation. \emph{Journal of financial economics}.
+8(4):323--361.
+
+\leavevmode\vadjust pre{\hypertarget{ref-meucci2005risk}{}}%
+Meucci, A. 2005. \emph{Risk and asset allocation}. Vol. 1. Springer.
+
+\leavevmode\vadjust pre{\hypertarget{ref-meucci2009managing}{}}%
+Meucci, A. 2009. Managing diversification. \emph{Risk}. 74--79.
+
+\leavevmode\vadjust pre{\hypertarget{ref-qian2005financial}{}}%
+Qian, E.E. 2005. On the financial interpretation of risk contribution:
+Risk budgets do add up. \emph{Available at SSRN 684221}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-steinbach2001markowitz}{}}%
+Steinbach, M.C. 2001. Markowitz revisited: Mean-variance models in
+financial portfolio analysis. \emph{SIAM review}. 43(1):31--85.
+
+\leavevmode\vadjust pre{\hypertarget{ref-RPP}{}}%
+Vinícius, Z. \& Palomar, D.P. 2019. {[}Online{]}, Available:
+\url{https://cran.r-project.org/web/packages/riskParityPortfolio/vignettes/RiskParityPortfolio.html\#risk-parity-portfolio}.
+
+\end{CSLReferences}
+
+\bibliography{Tex/ref}
+
+
+
+
+
+\end{document}

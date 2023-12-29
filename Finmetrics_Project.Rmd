@@ -1,0 +1,1188 @@
+---
+# IMPORTANT: Change settings here, but DO NOT change the spacing.
+# Remove comments and add values where applicable.
+# The descriptions below should be self-explanatory
+
+title: "Optimizing Portfolio Strategies: A Comparative Study of Mean-Variance, Minimum-Variance, and Risk Parity Portfolios"
+#subtitle: "This will appear as Right Header"
+
+documentclass: "elsarticle"
+
+# --------- Thesis title (Optional - set to FALSE by default).
+# You can move the details below around as you please.
+Thesis_FP: FALSE
+# Entry1: "An unbelievable study with a title spanning multiple lines."
+# Entry2: "\\textbf{Some Guy}" # textbf for bold
+# Entry3: "A thesis submitted toward the degree of Doctor of Philosophy"
+# Uni_Logo: Tex/Logo.png # Place a logo in the indicated location (from your root, e.g. defaults to ~/Tex/Logo.png) and uncomment this line. Leave uncommented for no image
+# Logo_width: 0.3 # If using a logo - use this to set width (size) of image
+# Entry4: "Under the supervision of: \\vfill Prof. Joe Smith and Dr. Frank Smith"
+# Entry5: "Stellenbosch University"
+# Entry6: April 2020
+# Entry7:
+# Entry8:
+
+# --------- Front Page
+# Comment: ----- Follow this pattern for up to 5 authors
+AddTitle: TRUE # Use FALSE when submitting to peer reviewed platform. This will remove author names.
+Author1: "Gabriella Neilon"  # First Author - note the thanks message displayed as an italic footnote of first page.
+Ref1: "Stellenbosch University" # First Author's Affiliation
+Email1: "22581340\\@sun.ac.za" # First Author's Email address
+
+# Author2: "John Smith"
+# Ref2: "Some other Institution, Cape Town, South Africa"
+# Email2: "John\\@gmail.com"
+# CommonAffiliation_12: TRUE # If Author 1 and 2 have a common affiliation. Works with _13, _23, etc.
+# 
+# Author3: "John Doe"
+# Email3: "Joe\\@gmail.com"
+
+CorrespAuthor_1: TRUE  # If corresponding author is author 3, e.g., use CorrespAuthor_3: TRUE
+
+# Comment out below to remove both. JEL Codes only given if keywords also given.
+# keywords: "Multivariate GARCH \\sep Kalman Filter \\sep Copula" # Use \\sep to separate
+# JELCodes: "L250 \\sep L100"
+
+# ----- Manage headers and footers:
+#BottomLFooter: $Title$
+#BottomCFooter:
+#TopLHeader: \leftmark # Adds section name at topleft. Remove comment to add it.
+BottomRFooter: "\\footnotesize Page \\thepage" # Add a '#' before this line to remove footer.
+addtoprule: TRUE
+addfootrule: TRUE               # Use if footers added. Add '#' to remove line.
+
+# --------- page margins:
+margin: 2.3 # Sides
+bottom: 2 # bottom
+top: 2.5 # Top
+HardSet_layout: TRUE # Hard-set the spacing of words in your document. This will stop LaTeX squashing text to fit on pages, e.g.
+# This is done by hard-setting the spacing dimensions. Set to FALSE if you want LaTeX to optimize this for your paper.
+
+# --------- Line numbers
+linenumbers: FALSE # Used when submitting to journal
+
+# ---------- References settings:
+# You can download cls format here: https://www.zotero.org/ - simply search for your institution. You can also edit and save cls formats here: https://editor.citationstyles.org/about/
+# Hit download, store it in Tex/ folder, and change reference below - easy.
+bibliography: Tex/ref.bib      # Do not edit: Keep this naming convention and location.
+csl: Tex/harvard-stellenbosch-university.csl # referencing format used.
+# By default, the bibliography only displays the cited references. If you want to change this, you can comment out one of the following:
+#nocite: '@*' # Add all items in bibliography, whether cited or not
+# nocite: |  # add specific references that aren't cited
+#  @grinold2000
+#  @Someoneelse2010
+
+# ---------- General:
+RemovePreprintSubmittedTo: TRUE  # Removes the 'preprint submitted to...' at bottom of titlepage
+#Journal: "Journal of Finance"   # Journal that the paper will be submitting to, if RemovePreprintSubmittedTo is set to TRUE.
+toc: TRUE                      # Add a table of contents
+numbersections: TRUE             # Should sections (and thus figures and tables) be numbered?
+fontsize: 12pt                  # Set fontsize
+linestretch: 1.2                # Set distance between lines.
+link-citations: TRUE            # This creates dynamic links to the papers in reference list.
+
+### Adding additional latex packages:
+header-includes:
+   - \usepackage{amsmath} # Add additional packages here.
+
+output:
+  pdf_document:
+    keep_tex: TRUE
+    template: Tex/TexDefault.txt
+    fig_width: 6 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 6
+abstract: |
+    This study conducts a comprehensive examination of portfolio optimization strategies, focusing on Mean-Variance Optimization (MVO), Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios. Acknowledging the foundational principles of Modern Portfolio Theory (MPT), the analysis critiques MVO's concentration issues and MVP's struggles with uneven weight distributions. Subsequently, the study explores the Risk Parity Portfolio's potential in mitigating asset concentration and optimizing risk diversification. The paper utilizes various indices to construct portfolios, employing a range of optimization techniques and considering global assumptions. The results reveal nuanced insights into each portfolio's performance, risk-adjusted returns, and weight allocations across asset classes. This comparative study highlights the strengths and weaknesses of each strategy, shedding light on their suitability in diverse market conditions.
+---
+
+<!-- First: Set your default preferences for chunk options: -->
+
+<!-- If you want a chunk's code to be printed, set echo = TRUE. message = FALSE stops R printing ugly package loading details in your final paper too. I also suggest setting warning = FALSE and checking for warnings in R, else you might find ugly warnings in your paper. -->
+\newpage
+
+```{r, include=FALSE}
+
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 5, fig.pos="H", fig.pos = 'H')
+# Note: Include = FALSE implies the code is executed, but not printed in your pdf.
+# warning and message = FALSE implies ugly messages and warnings are removed from your pdf.
+# These should be picked up when you execute the command chunks (code sections below) in your rmd, not printed in your paper!
+
+library(tidyverse)
+library(zoo)
+library("RcppRoll")
+library(fmxdat)
+if (!require("rmsfuns")) install.packages("rmsfuns")
+library(rmsfuns)
+library(tidyverse)
+pacman::p_load(tbl2xts)
+library(truncdist)
+library(rportfolios)
+library(rmsfuns)
+pacman::p_load("tidyr", "tbl2xts","devtools","lubridate", "readr", "PerformanceAnalytics", "ggplot2", "dplyr")
+pacman::p_load("tidyverse", "devtools", "FactoMineR", "factoextra", "broom", "rmsfuns")
+library(rmsfuns)
+load_pkg("PerformanceAnalytics")
+pacman::p_load("tbl2xts")
+pacman::p_load("xts", "tidyverse", "tbl2xts", "PerformanceAnalytics", 
+    "lubridate", "glue")
+
+library(ggExtra)
+library(MTS)
+library(gt)
+
+library(Texevier)
+library(tinytex)
+library("riskParityPortfolio")
+
+```
+
+```{r}
+#Loading data
+
+
+global <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/Global_Indices.rds")
+Indexes <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Cncy_Hedge_Assets.rds") 
+
+
+# combine glibal indexes with loc al SA indexes 
+d1 <- global %>%
+  select(Name, Returns, date, YM) %>%
+  spread(key = Name, value = Returns)
+
+testing <- ceiling_date(Indexes$date, "month") - days(1)
+
+Indexes$date <- testing
+
+
+
+dates <- dateconverter(as.Date("2002-02-28"),as.Date("2023-08-31"),
+    "calendarEOM")
+
+
+
+
+RSA_indexes <- Indexes %>% select(date,J433, ALBI)
+
+indexes_final <- RSA_indexes%>% filter(date %in% dates)
+
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+final_data <- combined_data %>% select(-"AfricaXSA",-"FTSE EPRA/NAREIT Developed Dividend+ Index",-"FTSE Global Core Infrastructure Net Return", -"MSCI World Emerging Market", -"US 3 Month Libor Rate", -"US Inflation Linkers", -"VIX",-"BRENT",-"SP 500") %>% gather(Name, Returns, -date,-YM) 
+
+plotdf <- 
+final_data %>% 
+# %>% group_by(Name) %>% 
+# # Epic sorcery:
+# mutate(RollRets = RcppRoll::roll_prod(1 + Returns, 36, fill = NA, 
+#     align = "right")^(12/36) - 1) %>% 
+# # Note this cool trick: it removes dates that have no
+# # RollRets at all.
+# 
+# group_by(date) %>% filter(any(!is.na(RollRets))) %>% 
+# ungroup()
+filter(Name %in%  c("Gold Spot $/Oz (GOLDS COMDTY)","GlobalAgg Unhedged USD", "MSCI ACWI", "J433", "ALBI"))
+```
+
+
+<!-- ############################## -->
+<!-- # Start Writing here: -->
+<!-- ############################## -->
+
+\newpage
+# Introduction {-}
+
+The inception of Modern Portfolio Theory (MPT) by Markowitz in 1952 revolutionized portfolio optimization, emphasizing the dual goals of maximizing returns while minimizing risks. However, the application of MPT strategies such as Mean-Variance Optimization (MVO) and Minimum-Variance Portfolio (MVP) has faced criticism due to concentration issues and challenges in risk diversification. To address these concerns, Risk Parity Portfolios emerged as an alternative approach, aiming to balance risk contributions across assets. This paper investigates and compares these strategies, aiming to provide a comprehensive understanding of their efficacy and limitations in modern financial landscapes.
+
+# Literature Review \label{-}
+
+## Mean-Variance Optimization (MVO)
+The concept of _Modern Portfolio Theory_ traces its origins to the pioneering work by Markowitz in 1952. This theory emphasizes the dual objectives of maximizing expected returns while minimizing risks, standing as the cornerstone in portfolio optimization [@markowits1952portfolio]. The approach employs the fundamental principles of portfolio diversification and leverages covariance relationships. Portfolio diversification, integral to risk reduction, is crucial as portfolio investment risk (variance) is impacted by both individual asset variances and covariances in a bipartite manner. However, the risk mitigation aspect of portfolio diversification should be approached judiciously, as its primary potential lies in mitigating unsystematic risk rather than systematic risk.
+
+The primary aim of mean-variance optimization is to minimize portfolio volatility while targeting an expected return. However, mean-variance optimization often leads to highly concentrated portfolios, making them vulnerable to abrupt changes in allocations due to minor input variations. There exists confusion between optimizing volatility and risk diversification [@bruder2012managing].
+
+Despite its foundational principles, mean–variance optimization (MVO) faces scrutiny when confronted with contemporary challenges, particularly financial crises. Critics argue that it overlooks risk diversification and only takes the portfolio's overall risk into account, which results in an excessive concentration of risk in a small number of assets—as was shown during the 2008 financial crisis. This critique, additionally, questions the reliance of Modern Portfolio Theory (MPT) on historical data as is also it is highly sensitive to parameter estimation errors , suggesting its potential irrelevance in current and future markets. Consequently, MPT's predictive capacity becomes less dependable and more susceptible to deviations from actual market behavior [@steinbach2001markowitz]. Another area of criticism pertains to Markowitz's definition of risk, often equated with "volatility" (both upside and downside). This overlooks the perspective that investors aren't inherently risk-averse; rather, they exhibit a tendency toward aversion to losses, therefore in actuality, the variance is a poor indicator of risk because it penalizes both desired low losses and unwanted large losses. As Harold Evensky, a renowned financial planner and the founder of Evensky & Katz Foldes Wealth Management, states, *"Investors aren't risk-averse, they're loss-averse."* 
+
+
+## Minimum-Variance Portfolio (MVP)
+
+The Minimum-Variance Portfolio (MVP) seeks to create a portfolio with the lowest possible risk among a set of assets without emphasizing explicit return predictions, contrasting with the Mean-Variance Optimization (MVO) method.
+
+In the MVP, the primary aim is to allocate weights to assets to minimize overall portfolio variance. However, this approach tends to concentrate on low-volatility assets, resulting in less diversified portfolios with uneven weight distributions [@lohre2014diversifying]. 
+
+This portfolio is at the left-most end of the mean-variance efficient frontier possessing the unique trait of having security weights independent of expected returns on individual securities. Although all portfolios on the efficient frontier aim to minimize risk for a given return, the minimum-variance portfolio achieves this without considering expected returns directly [@clarke2013risk].
+
+Despite its potential benefits, minimum-variance portfolios commonly struggle with concentration issues [@maillard2010properties]. Ans across different portfolio components.
+
+
+## Risk Parity Portfolios
+
+The criticism of MVO and MVP introduces alternative portfolio optimization strategies, with a particular focus on risk budgeting (or diversified risk parity strategies). This strategy is widely accepted in both academic and professional circles [@meucci2005risk; @meucci2009managing; @choueifaty2008toward; @bruder2012managing; @lohre2012diversified; @maillard2010properties]. 
+
+The resolution to concentrated risk in a select few assets observed in both Mean-Variance Optimization (MVO) and Minimum Variance Portfolio (MVP) strategies appears to lie in the adoption of a Risk Parity portfolio.  @maillard2010properties delves into the theoretical properties of the risk budgeting portfolio, demonstrating its volatility positioning between the minimum variance and weight budgeting portfolios  Unlike the minimum variance portfolio, the Risk Parity portfolio is invested in all assets. While its volatility is greater than the minimum variance portfolio but smaller than the 1/N strategy, the Risk Parity portfolio maintains more balanced risk contributions, even though it ranks similarly to a MVP in terms of weight distribution. 
+
+In contrast to minimum-variance portfolios that equalize the marginal contributions of each asset to portfolio risk, risk parity portfolios equalize the total risk contribution, minimum-variance portfolios, positioning risk parity portfolios slightly inside the efficient frontier rather than on it [@clarke2013risk, p. 40].
+
+And unlike Mean-Variance Optimization (MVO), risk parity portfolios do not explicitly prioritize the expected return or the risk of a portfolio. Nonetheless, they do necessitate a positive expected return [@fisher2015risk, p. 42]. Furthermore, the purpose of risk parity is not solely to minimize portfolio risk like standard MVO portfolios. Instead, by equalizing asset risk contributions, risk parity aims for optimal risk diversification [@costa2020robust].
+
+Initially, a risk parity portfolio defined weights based on asset class inverse volatility, disregarding their correlations [@clarke2013risk, p. 39]. Subsequently, @qian2005financial developed a more comprehensive definition that considers correlations and grounds the property in a risk budget where weights are adjusted to ensure each asset contributes equally to portfolio risk.
+
+They allocate weights to different asset classes based on their risk measures, ensuring each asset contributes an equal risk amount to the portfolio and reducing estimation noise [@maillard2010properties]. This approach emphasizes risk allocation, typically defined as volatility, rather than capital allocation. By adjusting asset allocations to the same risk level, the risk parity portfolio can achieve a higher Sharpe ratio and better withstand market downturns compared to traditional portfolios. It ensures a well-diversified portfolio by requiring each asset to contribute the same level of risk [@merton1980estimating].
+
+Furthermore, @ardia2017impact demonstrate that risk parity portfolios are less susceptible to covariance misspecification compared to other risk-based investment strategies.
+
+Nevertheless, the Risk Parity portfolio is not devoid of shortcomings.
+@maillard2010properties [p. 16] points out that even though minimum variance portfolios face constraints due to asset concentration, risk parity portfolios lack adequate risk oversight. However, implementing this approach optimizes risk distribution, acting as a balanced risk filter that prevents any single asset from dominating the portfolio, as observed in the case of the MVP.
+
+
+<!-- The following is a code chunk. It must have its own unique name (after the r), or no name. After the comma follows commands for R which are self-explanatory. By default, the code and messages will not be printed in your pdf, just the output: -->
+
+
+
+<!-- :::::: {.columns data-latex="[T]"} -->
+<!-- ::: {.column data-latex="{0.7\textwidth}"} -->
+<!-- ```{r, echo=FALSE, fig.width=4, fig.height=4} -->
+<!-- par(mar = c(4, 4, .2, .1)) -->
+<!-- plot(cars, pch = 19) -->
+<!-- ``` -->
+<!-- ::: -->
+<!-- ::: {.column data-latex="{0.05\textwidth}"} -->
+<!-- \ -->
+<!-- ::: -->
+<!-- ::: {.column data-latex="{0.2\textwidth}"} -->
+<!-- \scriptsize -->
+
+#  Data and Methodology \label{-} 
+
+This paper aligns closely with @maillard2010properties by constructing a G*lobal diversified portfolio* and utilizes monthly data provided by @katzke2023portfoliocourse, focusing on various indices including the Morgan Stanley Capital International All Country World Index ("MSCI ACWI"), the Gold Spot rate ("Gold Spot $/Oz"), the Bloomberg Global Aggregate Bond Index ("GlobalAgg Unhedged USD"), the Capped SWIX All Share Index ("J433"), and the FTSE/JSE All Bond Index ("ALBI"). The analysis aims to compare various portfolio optimization strategies. Utilizing a standard shrinkage technique, covariance matrices are estimated for all strategies [@chaves2011risk].
+
+The study adopts several global assumptions: (1) full investment  ($\boldsymbol{\omega^1} 1=1$), (2) a long-only strategy($\boldsymbol{\omega} \ge 0$). All portfolios undergo quarterly rebalancing, with an upper limit of 25% and a lower bound of 1% applied to all asset classes. Furthermore, Bonds are capped at 25%, Equities at 60%, and Gold at 10% exposure.
+
+The analysis commences with a \textnormal{na\"{i}ve} $\frac{1}{N}$ , assigning equal weights to asset classes. Subsequently, Minimum Variance Optimization (MVO) and Minimum Variance Portfolio (MVP) techniques are implemented. Equations representing the minimum variance portfolios are detailed, encompassing both MVP and MVO, as provided by [@katzke2023portfolio]:
+
+
+\begin{align}
+\frac{1}{2} \boldsymbol{\omega^T*Dmat*\omega}=\boldsymbol{dvec^T\omega} \\
+s.t. \ \boldsymbol{Amat * \omega \ge bvec}\\
+\end{align}
+
+
+\begin{align}
+ \boldsymbol{\omega_{mvp}}= arg \min \boldsymbol{\omega' \Sigma\omega} \\
+  s.t. \sum_{n=1}^{N} \omega_i = 1 \ and\ \omega \ge 0
+\end{align}
+
+\begin{align}
+ \boldsymbol{\omega_{mvp}}= arg \min \boldsymbol{\omega' \Sigma\omega} \\
+  s.t. \sum_{n=1}^{N} \omega_i = 1 \ and\ \omega \ge 0
+\end{align}
+
+\begin{align}
+ \boldsymbol{\omega_{mvo}}= arg\max\ \ \boldsymbol{\mu}^T\omega-\lambda\boldsymbol{\omega^T\Sigma\omega} \\
+  s.t. \sum_{n=1}^{N} \omega_i = 1 \ and\ \omega \ge 0
+\end{align}
+
+To ensure robustness against outliers in the dataset, a covariance matrix shrinkage approach, advocated by [@ledoit2003improved, is applied. Shrinkage serves to minimize the impact of outliers, enhancing the stability of covariance estimates.
+
+\begin{align}
+\hat{\Sigma}^{Shrunk}=(1-\rho)\ *  \hat{\Sigma} \ + \rho \ * T\\
+with \ T= \frac{1}{N}Tr \times I
+\end{align}
+
+
+
+
+<!-- \begin{bmatrix} -->
+<!-- 1  &  1  &  0  &  0   & 0   &  0 &  0 &  -1 &   0   &  0  &   0  &   0   &  0  &   1  &   0  &   0  &   0  &   0\\ -->
+<!-- 1  &  0  &  1  &  0   & 0  &  0 &   0 &   0 &  -1  &   0  &   0  &   0   &  0  &   0   &  1  &   0  &   0   &  0\\ -->
+<!-- 1  &  0  &  0  &  1   & 0  &  0 &   0 &   0 &  0  &   -1  &   0  &   0   &  0  &   0   &  0  &   0  &   0   &  0\\ -->
+<!-- 1  &  0  &  0  &  0   & 1  &  0 &   0 &   0 &  0  &   0  &   -1  &   0   &  0  &   0   &  0  &   -1  &   0   &  0\\ -->
+<!-- 1  &  0  &  0  &  0   & 0  &  1 &   0 &   0 &  0  &   0  &   0  &   -1   &  0  &   0   &  0  &   0  &   -1   &  0\\ -->
+<!-- 1  &  0  &  0  &  0   & 0  &  0 &   1 &   0 &  0  &   0  &   0  &   0   &  -1  &   0   &  0  &   0  &   0   &  -1\\ -->
+<!-- \end{bmatrix} -->
+<!-- \begin{bmatrix} -->
+<!-- w_1 \\ -->
+<!-- w_2\\ -->
+<!-- w_3\\ -->
+<!-- w_4\\ -->
+<!-- w_5\\ -->
+<!-- w_6\\ -->
+<!-- \end{bmatrix} \ge \n -->
+<!-- \begin{bmatrix} -->
+<!-- 1 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & 0.01 & -0.25 & -0.25 & -0.25 & -0.25 & -0.25 & -0.25 & -0.25 & -0.25 &  -0.60 & -0.60 & -0.60 -->
+<!-- \end{bmatrix} -->
+
+
+Moving to risk parity, the portfolio setup involves optimizing risk contribution through weight allocations, ensuring proportional risk distribution among assets. The process for equalizing risk contributions is delineated, highlighting the attempt to balance risks across the portfolio [@RPP].
+
+The volatility of the portfolio $\sigma(\boldsymbol{w})=\sqrt{\boldsymbol{w^t\Sigma w}}$, the risk contribution of the $i$th asset to the total risk is defined as: 
+
+$RC_i=\frac{w_i((\boldsymbol{\Sigma w}))i}{\sqrt{\boldsymbol{w^t\Sigma w}}}$ which satisfies $\sum_{i=1}^{N} RC_i = \sigma(\boldsymbol{w})$. The relative or marginal risk contribution (RRC) is a normalized version so that $\sum_{i=1}^{N} RRC_i = 1$.
+
+Therefore the risk parity profile which attempts to equalize the risk contributions is: $RC_i=\frac{1}{N}\sigma (\boldsymbol{w})$
+
+The risk budget constraint attempts to allocate the risk according to the risk profile determined by the weights $\boldsymbol{b}$ (with $\boldsymbol{1}^T \boldsymbol{b} =1$ and $\boldsymbol{b} \ge 0$) so that it can be expressed as $RC_i=b_i\sigma (\boldsymbol{w})$
+
+For the \textnormal{na\"{i}ve} diagonal formulation the constraints are $\boldsymbol{1}^T \boldsymbol{w} =1$ and $\boldsymbol{w} \ge 0$) which will state that the portfolio is inversely proportional to the assets' volatilities. Mathematically,
+
+\begin{align}
+\boldsymbol{w} =\frac{\boldsymbol{\sigma}^{-1}}{\boldsymbol{1}^T \boldsymbol{\sigma}^{-1}}
+\end{align}
+
+where $\boldsymbol{\sigma^2}=Diag(\boldsymbol{\Sigma})$. Therefore, lower weights are given to high volatility assets and higher weights to low volatility assets. This is often referred to as "equal volatility" portfolio. Creating an "equal volatility" portfolio involves selecting and assigning weights to individual assets in such a way that, when combined, each asset's volatility contributes equally to the total volatility of the portfolio. This approach aims to mitigate the impact of any single asset's volatility on the overall risk of the portfolio, potentially providing a more diversified and risk-balanced investment strategy. $sd(w_i r_i)=w_i \sigma_i=\frac{1}{N}$
+
+
+Adding the additional constraints we get:
+
+\begin{align}
+\min_{w}\ R(\boldsymbol{w}) + \lambda F(\boldsymbol{w})  \\
+s.t.\ \boldsymbol{Cw}=\boldsymbol{c}, \boldsymbol{Dw}\le\boldsymbol{d}
+\end{align}
+
+# Results \label{-}
+
+In comparison to other portfolios, the $\frac{1}{N}$ portfolio is outperformed by the MVP and MVO in terms of the Sharpe Ratio. On the other hand, the Risk Parity Portfolio, along with the MVO, demonstrates superior annualized returns, consistent with the findings of @maillard2010properties. Notably, the Risk Parity Portfolio demonstrates extensive weight allocations across most asset classes. However, a noteworthy observation emerges in the allocation pattern regarding the 'ALBI' asset class. Despite its relatively lower risk contribution, this class holds a significant weight in the portfolio, showcasing the intuitive nature of the Risk Parity strategy. In contrast, the MVO aggressively targets equities and gold but overlooks 'ALBI.'
+
+Nevertheless, the considerable weight allocation towards equities in the Risk Parity Portfolio raises questions. This anomaly might be attributed to the chosen 'asset' classes, primarily composed of indexes and hence exhibiting more stability. However, in a 'real-life' portfolio comprising individual assets, this allocation might differ. This aligns with @@chaves2011risk's insight, indicating Risk Parity's sensitivity to asset selection, which remains more art than science.
+
+Across portfolio management, Mean-Variance Optimization (MVO) and Risk Parity strategies emerge as prominent contenders in cumulative returns and annualized performance. However, when assessing portfolios based on risk-adjusted performance, the Minimum-Variance Portfolio (MVP) and Mean-Variance strategy take the lead, particularly excelling in the Sharpe ratio. This ratio, which balances return against risk, places these portfolios at the forefront in delivering optimal returns considering inherent investment risks, aligning with @chaves2011risk's conclusions.
+
+Although the Risk Parity Portfolio boasts substantial annualized returns, it lags in the Sharpe ratio department.
+
+Upon analyzing risk distribution across principal portfolios, the $\frac{1}{N}$ strategy predominantly budgets risk toward equities, implying a high equity risk. Furthermore, it aligns with the typical weight distribution of minimum variance, heavily concentrated in low-risk asset classes like bonds, as found in [@lohre2014diversifying].
+
+
+```{r}
+#create portfolio rebalancing quarterly
+
+
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% spread(Name,Returns)
+
+DT <- DT %>% tbl_xts()
+
+weights <-  c(0.2,0.2,0.2,0.2,0.2) 
+Portfolio_EW <-  Return.portfolio(R = DT, weights = weights, rebalance_on = "quarter", verbose=T)
+
+DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+# Clean and save portfolio returns and weights:
+W_Contribution <- 
+      Portfolio_EW$contribution %>% xts_tbl() 
+
+W_BPWeight <- 
+      Portfolio_EW$BOP.Weight %>% xts_tbl()  
+
+W_BPValue <- 
+      Portfolio_EW$BOP.Value %>% xts_tbl()
+
+  
+    names(W_Contribution) <- c("date", names(Portfolio_EW$contribution))
+    names(W_BPWeight) <- c("date", names(Portfolio_EW$BOP.Weight))
+    names(W_BPValue) <- c("date", names(Portfolio_EW$BOP.Value))
+
+W_BPWeight <- W_BPWeight %>% gather(Name, Weight, -date)
+W_BPValue<- W_BPValue %>% gather(Name, value_held, -date)
+W_Contribution <- W_Contribution %>% gather(Name, Contribution, -date)
+
+names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+  # Names to be replaced
+new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+
+# Replace specific column names
+W_BPWeight <- W_BPWeight %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_BPValue <-  W_BPValue %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_Contribution <- W_Contribution %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+
+EW_portfolio_and_weight <- 
+      left_join(DATA,
+                W_BPWeight,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_BPValue,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_Contribution,
+                by = c("date", "Name"))
+
+```
+
+```{r}
+# Plotting the cumulative returns of porfolio construction according to the "Naive" portfolio weigths
+# Calculate Portfolio Returns:
+EW_portfolio_return_weighted <- 
+    EW_portfolio_and_weight %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*Weight, na.rm =TRUE)) %>% 
+      filter(PortfolioReturn != 0) # this gives the same as when you take the porfolio.return
+
+
+Cum_EW <- 
+EW_portfolio_return_weighted%>% 
+    mutate(cumreturn_EW = (cumprod(1 + PortfolioReturn))) %>% 
+    mutate(cumreturn_EW = cumreturn_EW / first(cumreturn_EW)) %>% select(-PortfolioReturn)
+
+
+```
+
+
+```{r}
+# Porfolio construction using Minimum Variance Portfolio
+
+# The portfolio is subject to quarterly rebalancing to maintain alignment with predefined exposure thresholds, including a 25% limit on Bonds,credit instruments and commodoties, a maximum of 60% exposure to Equities, and a cap of 40% on single asset exposure. Utilizing monthly data, a
+# covariance matrix has been estimated using datasets available post-2010 for analytical purposes.
+
+
+# first use method in class then compare it with method found on Google
+
+library(PortfolioAnalytics)
+#now what it the optimal weight of each equity? remember that the "limit exposure" instruction is how I am going to cap my porfolio
+
+#Getting optimal weights via Portfolio Optimization
+return_mat <- plotdf  %>% filter (date>="2002-02-28" & date<="2023-08-31") %>% select(date, Name, Returns) %>% spread(Name, Returns)
+
+# is there any NAs?
+# source("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/22581340_Financial-Econometrics/22581340_FE/code/Impute_NA_Returns.R")
+# impute_missing_returns(return_mat, impute_returns_method = "None") 
+# No Nas!!
+
+# Drop date column for this...
+return_mat_Nodate <- data.matrix(return_mat[, -1])
+
+# Simple Sample covariance and mean:
+#for safety to avoid the impact of outliers
+# Ledoit Wolf shrinkage:
+Sigma_LW <- RiskPortfolios::covEstimation(return_mat_Nodate, control = list(type = "lw"))
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+# Purely for safety reasons, to avoid a non-positive definite matrix breaking your function...
+Sigma <- as.matrix( Matrix::nearPD(Sigma_LW)$mat)
+
+#Now let's begin with other constraints to design Amat and bvec
+
+NStox <- ncol( return_mat_Nodate )
+LB = 0.01
+UB = 0.25
+meq = 1 # as only the first column of Amat is an equality (weight sum equals 1)
+
+# Additional constraints
+bond_credit_limit <- 0.25
+equities_limit <- 0.60
+commodity_limit <- 0.1
+
+
+
+# Define the new order of asset classes
+#new_order <- c("bond", "bond", "commodity", "equity")
+
+eq_const_mat<-  rbind(matrix(0, nrow = 3, ncol = 2),
+                    -diag(2))
+
+
+bond_const_mat <- rbind(matrix(0, nrow = 0, ncol = 2),
+                     -diag(2),
+                     matrix(0, nrow = 3, ncol = 2))
+
+commodity_const_mat <- rbind(matrix(0, nrow = 2, ncol = 1),
+                -1,
+                matrix(0, nrow = 2, ncol = 1))
+
+
+bvec <- c( 1, rep(LB, NStox), -rep(UB, NStox), -rep(bond_credit_limit, 2), -rep(commodity_limit,1), -rep(equities_limit, 2))
+
+
+Amat <- cbind(1, diag(NStox), -diag(NStox),-bond_const_mat,commodity_const_mat ,eq_const_mat )
+  # Adjustment for the equities limit
+  
+# we will use the quadprog package" to get MVP
+  w.opt <- 
+    quadprog::solve.QP(Dmat = Sigma,
+                            dvec = Mu, 
+                            Amat = Amat, 
+                            bvec = bvec, 
+                            meq = meq)$solution
+
+ result.QP <- tibble(stocks = colnames(Sigma), weight = w.opt) 
+ 
+# ###############
+# #MVo
+#     quadprog::solve.QP(Dmat = Sigma,
+#                             dvec = Mu, 
+#                             Amat = t(Amat), 
+#                             bvec = bvec, 
+#                             meq = meq)$solution
+ 
+##############
+Type_minvol = "minvol"
+      Opt_W_min_vol <- 
+        RiskPortfolios::optimalPortfolio(mu = Mu, Sigma = Sigma, 
+                control = list(type = Type_minvol, constraint = 'user', 
+                               LB = rep(LB, ncol(Sigma)), 
+                               UB = rep(UB, ncol(Sigma)),
+             bond_credit_limit=-rep(bond_credit_limit,2),
+                commodity_limit=rep(commodity_limit, 1),
+                equities_limit=rep(equities_limit,2)))
+
+      
+# now for mean variance
+ Type_mv = "mv"
+      Opt_W_mv <- 
+        RiskPortfolios::optimalPortfolio(mu = Mu, Sigma = Sigma, 
+                control = list(type = Type_mv, constraint = 'user', 
+                               LB = rep(LB, ncol(Sigma)), 
+                               UB = rep(UB, ncol(Sigma)),
+             bond_credit_limit=rep(bond_credit_limit,ncol(Sigma)),
+                commodity_limit=rep(commodity_limit, ncol(Sigma)),
+                equities_limit=rep(equities_limit,ncol(Sigma))))  
+      
+# erc?
+      
+Type_erc = "erc"
+      Opt_W_erc <- 
+        RiskPortfolios::optimalPortfolio(mu = Mu, Sigma = Sigma, 
+                control = list(type = Type_erc, constraint = 'user', 
+                               LB = rep(LB, ncol(Sigma)), 
+                               UB = rep(UB, ncol(Sigma)),
+             bond_credit_limit=rep(bond_credit_limit,ncol(Sigma)),
+                commodity_limit=rep(commodity_limit, ncol(Sigma)),
+                equities_limit=rep(equities_limit,ncol(Sigma))))  
+```
+
+```{r}
+# Using alternative method in practical using  CVXR package to see if the results are the same
+# pacman::p_load(CVXR)
+# 
+# w <- Variable(NStox)
+# ret <- t(Mu) %*% w
+# risk <- quad_form(w, Sigma)
+# obj <- ret - risk
+# constr <- list(w >= LB, w <= UB, sum(w) == 1, w <= 0.25,w<= 0.60)
+# #constr <- list(p_norm(w,1) <= Lmax, sum(w) == 1)
+# prob <- Problem(Maximize(obj), constr)
+# result <- solve(prob)
+# result.CVXR <- tibble(stocks = colnames(Sigma), weight = result$getValue(w) %>% as.vector())
+
+# I get the same results
+
+
+
+#Type = "minvol"
+#RiskPortfolios::optimalPortfolio(mu = Mu, Sigma = Sigma, 
+                # control = list(type = Type, constraint = 'user', 
+                #                LB = rep(LB, ncol(Sigma)), 
+                #                UB = rep(UB, ncol(Sigma)),
+                #                bond_credit_limit = rep(bond_credit_limit,ncol(Sigma)),
+                #                equities_limit = rep(equities_limit, ncol(Sigma))))
+```
+
+```{r}
+# LB = 0.01
+# UB = 0.25
+# meq = 1 # as only the first column of Amat is an equality (weight sum equals 1)
+# 
+# # Additional constraints
+# bond_credit_limit <- 0.25
+# equities_limit <- 0.60
+# 
+# # Using function from class (NB: remember to put into differents files for final)
+# 
+# optim_foo <- function(Type = "mv", Mu, Sigma, LB, UB, bond_credit_limit,commodity_limit, equities_limit,printmsg = TRUE){
+# 
+#   Safe_Optim <- purrr::safely(RiskPortfolios::optimalPortfolio)
+#         
+# Opt_W <- 
+#         Safe_Optim(mu = Mu, Sigma = Sigma, 
+#                 control = list(type = Type, constraint = 'user', 
+#                                LB = rep(LB, ncol(Sigma)), 
+#                                UB = rep(UB, ncol(Sigma)),
+#                                bond_credit_limit = rep(bond_credit_limit,ncol(Sigma)),
+#                                commodity_limit=rep(commodity_limit, ncol(Sigma)),
+#                                equities_limit = rep(equities_limit, ncol(Sigma))))
+# 
+# if( is.null(Opt_W$error)){
+#   
+#   optimw <- 
+#     tibble(Tickers = colnames(Sigma), weights = Opt_W$result) %>% 
+#     # Take note:
+#     rename(!!Type := weights)
+#   
+#   if(printmsg)   optimw <- optimw %>% mutate(Result = glue::glue("Converged: {Type}"))
+#   
+# } else {
+#   
+#   optimw <- tibble(Tickers = colnames(Sigma), weights = 1/ncol(Sigma)) %>% 
+#     # Take note:
+#     rename(!!Type := weights)
+# 
+#  
+#   if(printmsg)   optimw <- optimw %>% mutate(Result = glue::glue("Failed to Converge: {Type}"))
+#   
+# }
+#      optimw
+# }
+# 
+# 
+# # apply function
+# My_Weights <- left_join(
+#   optim_foo(Type = "mv", Mu, Sigma, LB, UB ,bond_credit_limit, commodity_limit,equities_limit, printmsg = F),
+#   optim_foo(Type = "minvol", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+#   by = c("Tickers")) %>% 
+#     left_join(.,optim_foo(Type = "erc", Mu, Sigma, LB, UB, bond_credit_limit,commodity_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+#       left_join(.,optim_foo(Type = "riskeff", Mu, Sigma, LB, UB , bond_credit_limit, commodity_limit,equities_limit, printmsg = F),by = c("Tickers"))
+#   
+# 
+# 
+# 
+# 
+# # Function from class
+# EOM_datevec <- return_mat %>% select(date) %>% unique %>% mutate(YM = format(date, "%Y%B")) %>% group_by(YM) %>% filter(date == last(date)) %>% ungroup() %>% pull(date) %>% unique
+# 
+# Roll_optimizer <- function(return_mat, EOM_datevec, LookBackSel = 36){
+#   
+# return_df_used <- return_mat %>% filter(date >= EOM_datevec %m-% months(LookBackSel))
+#   
+# if(return_df_used %>% nrow() < LookBackSel) return(NULL) # PRO TIP - return NULL effectively skips the iteration when binding....
+# 
+# return_mat_Nodate <- data.matrix(return_df_used[, -1])
+# # Simple Sample covariance and mean for the lookback period:
+# Sigma <- RiskPortfolios::covEstimation(return_mat_Nodate)
+# Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+# 
+# 
+# My_Weights <- 
+#   left_join(
+#   optim_foo(Type = "mv", Mu, Sigma, LB, UB, bond_credit_limit, commodity_limit,equities_limit, printmsg = F),
+#   optim_foo(Type = "minvol", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+#   by = c("Tickers")) %>% 
+#     left_join(.,optim_foo(Type = "erc", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+#       left_join(.,optim_foo(Type = "riskeff", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+#   
+#   mutate(date = EOM_datevec, Look_Back_Period = LookBackSel)
+#   
+# }
+```
+
+```{r}
+All_Result <- data.frame(cbind(Name=colnames(Sigma),minvol=Opt_W_min_vol,mv=Opt_W_mv, erc=Opt_W_erc)) 
+
+assign_weights <- function(df, weights) {
+  df$Weights <- weights[match(df$Name, unique(df$Name))]
+  return(df)
+}
+
+# Apply weights to return_mat_plot based on asset names
+weighted_minvol <- return_mat %>% gather(Name,Returns,-date) %>% 
+  group_by(date) %>%
+  mutate(Weights = ifelse(row_number() <= length(All_Result$minvol), All_Result$minvol[row_number()], NA))
+
+weights_minvol_new <- weighted_minvol[,c(1,2,4)]
+
+weights_minvol_new <-weights_minvol_new %>%  mutate(Weights=as.numeric(as.character(Weights)))
+ 
+weights_minvol_final <- weights_minvol_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
+
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name) #data to be used for all
+
+Portfolio_MinVol <-  Safe_Return.portfolio(R = DT, weights = weights_minvol_final, rebalance_on = "quarter", verbose=T)
+
+
+Weighted_Porfolio_Returns_MinVol <- 
+      Portfolio_MinVol$returns %>% xts_tbl() #get back to this
+
+Cum_MinVol <-
+Weighted_Porfolio_Returns_MinVol%>%
+    mutate(cumreturn_minvol = (cumprod(1 + portfolio.returns))) %>%
+    mutate(cumreturn_minvol= cumreturn_minvol/ first(cumreturn_minvol)) %>% select(-portfolio.returns)
+
+##
+# Now for MV
+weighted_mv <- return_mat %>% gather(Name,Returns,-date) %>% 
+  group_by(date) %>%
+  mutate(Weights = ifelse(row_number() <= length(All_Result$mv), All_Result$mv[row_number()], NA))
+
+weights_mv_new <- weighted_mv[,c(1,2,4)]
+
+weights_mv_new <-weights_mv_new %>%  mutate(Weights=as.numeric(as.character(Weights)))
+ 
+weights_mv_final <- weights_mv_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
+
+
+Portfolio_MV <-  Safe_Return.portfolio(R = DT, weights = weights_mv_final, rebalance_on = "quarter", verbose=T)
+
+
+Weighted_Porfolio_Returns_MV <- 
+      Portfolio_MV$returns %>% xts_tbl()
+
+Cum_MV <-
+Weighted_Porfolio_Returns_MV%>%
+    mutate(cumreturn_mv = (cumprod(1 + portfolio.returns))) %>%
+    mutate(cumreturn_mv= cumreturn_mv/ first(cumreturn_mv)) %>% select(-portfolio.returns)
+
+
+
+```
+
+
+```{r}
+# This section I'm testing something out
+
+#NBNBNB this is only for testing
+# weights_mv <- All_Result[,c(6,1,2)]
+# 
+# weights_new_mv <- weights_mv %>% tbl_xts(., cols_to_xts = mv, spread_by = Name)
+# DT_MV <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_mv<-  Safe_Return.portfolio(R = DT_MV, weights = weights_new_mv, rebalance_on = "quarter",verbose=T)
+# 
+# 
+# weighted_Porfolio_Returns_mv <-
+#       Portfolio_mv$returns %>% xts_tbl()
+# 
+# Cum_mv <-
+# weighted_Porfolio_Returns_mv%>%
+#     mutate(cumreturn_mv = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_mv= cumreturn_mv/ first(cumreturn_mv)) %>% select(-portfolio.returns)
+# # 
+# # #####################################
+# wts_erc <- All_Result[,c(6,1,4)]
+# 
+# wts_new_erc <- wts_erc %>% tbl_xts(., cols_to_xts = erc, spread_by = Name)
+# 
+# DT_erc <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_erc <-  Safe_Return.portfolio(R = DT_erc, weights = wts_new_erc, rebalance_on = "quarter",verbose=T)
+# 
+# 
+# erc_Porfolio_Returns <-
+#       Portfolio_erc$returns %>% xts_tbl()
+# 
+# Cum_erc <-
+# erc_Porfolio_Returns%>%
+#     mutate(cumreturn_erc = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_erc= cumreturn_erc / first(cumreturn_erc)) %>% select(-portfolio.returns)
+
+
+# 
+# #################################
+# 
+# wts_riskeff <- MV_Result[,c(6,1,5)]
+# 
+# wts_new_riskeff <- wts_riskeff %>% tbl_xts(., cols_to_xts = riskeff, spread_by = Name)
+# 
+# DT_riskeff <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_riskeff <-  Safe_Return.portfolio(R = DT_riskeff, weights = wts_new_riskeff, rebalance_on = "quarter",verbose=T)
+# 
+# 
+# riskeff_Porfolio_Returns <- 
+#       Portfolio_riskeff$returns %>% xts_tbl() 
+# 
+# Cum_riskeff <-
+# riskeff_Porfolio_Returns%>%
+#     mutate(cumreturn_riskeff = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_riskeff= cumreturn_riskeff / first(cumreturn_riskeff)) %>% select(-portfolio.returns)
+# 
+# ######################
+# 
+# 
+# data1_t <- left_join(Cum_mv,Cum_mv_mv, by="date")
+# 
+# data2_t <- left_join(data1_t, Cum_erc, by="date")
+# 
+# data3_t <- left_join(data2_t, Cum_riskeff, by="date")
+# 
+# data4_t <- data3_t %>% gather(CumReturnType, Value, -date)
+# 
+# 
+# plot1_t <- data4_t %>% ggplot() +
+# geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7,
+#     size = 1) +
+# labs(title = "Rolling 3 Year Annualized Returns of Indices",
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)",
+#     caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30),
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) +
+# 
+# fmx_cols()
+# 
+# g_finplot_t <- finplot(plot1_t, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T,
+#     y.pct = T, y.pct_acc = 1)
+```
+
+
+
+```{r}
+# Now calculate rebalanvce quarterly and calculate the return of it based on the minvol 
+
+
+# #NBNBNB use this one
+# weights_minvol <- All_Result[,c(6,1,3)]
+# 
+# weights_new_minvol <- weights_minvol %>% tbl_xts(., cols_to_xts = minvol, spread_by = Name)
+# DT_MinVol <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_MinVol <-  Safe_Return.portfolio(R = DT_MinVol, weights = weights_new_minvol, rebalance_on = "quarter",verbose=T)
+# 
+# DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+# # Clean and save portfolio returns and weights:
+# W_Contribution_MinVol <- 
+#       Portfolio_MinVol$contribution %>% xts_tbl() 
+# 
+# W_BPWeight_MinVol <- 
+#       Portfolio_MinVol$BOP.Weight %>% xts_tbl()  
+# 
+# W_BPValue_MinVol <- 
+#       Portfolio_MinVol$BOP.Value %>% xts_tbl()
+# 
+#   
+#     names(W_Contribution_MinVol) <- c("date", names(Portfolio_MinVol$contribution))
+#     names(W_BPWeight_MinVol) <- c("date", names(Portfolio_MinVol$BOP.Weight))
+#     names(W_BPValue_MinVol) <- c("date", names(Portfolio_MinVol$BOP.Value))
+# 
+# W_BPWeight_MinVol<- W_BPWeight_MinVol %>% gather(Name, Weight, -date)
+# W_BPValue_MinVol<- W_BPValue_MinVol %>% gather(Name, value_held, -date)
+# W_Contribution_MinVol <- W_Contribution_MinVol %>% gather(Name, Contribution, -date)
+# 
+# names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+#   # Names to be replaced
+# new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+# 
+# # Replace specific column names
+# W_BPWeight_MinVol <- W_BPWeight_MinVol %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# W_BPValue_MinVol<-  W_BPValue_MinVol %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# W_Contribution_MinVol <- W_Contribution_MinVol %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# 
+# portfolio_return_MinVol <- 
+#       left_join(DATA,
+#                 W_BPWeight_MinVol,#dont know if this is significant
+#                 by = c("date", "Name") ) %>% 
+#       
+#       left_join(.,
+#                 W_BPValue_MinVol,
+#                 by = c("date", "Name") ) %>% 
+#       
+#       left_join(.,
+#                 W_Contribution_MinVol,
+#                 by = c("date", "Name"))
+# 
+# # Rebalance_Quarterly <- 
+# #   
+# #   return_mat %>% 
+# #   
+# #   mutate(Year = format(date, "%Y"), Month = format(date, "%b"), Day = format(date, "%a")) %>% 
+# #   
+# #   dplyr::filter(Month %in% c("Mar", "Jun", "Sep", "Dec")) %>% 
+# #   
+# #   select(date, Year,  Month, Day ) %>% unique() %>% 
+# #   
+# #   group_by(Year, Month) %>% 
+# #   
+# #   filter( date == last(date)) %>% 
+# #   
+# #   pull(date)
+# 
+# 
+# # new_dat_MV %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*minvol, na.rm =TRUE)) %>% 
+# #       filter(PortfolioReturn != 0) #gives same results
+# 
+# weighted_returns_porfolio_MinVol <- 
+#     All_Result_new %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*minvol, na.rm =TRUE)) %>% 
+#       filter(PortfolioReturn != 0)
+# 
+# 
+# Cum_minvol <- 
+# weighted_returns_porfolio_MinVol%>% 
+#     mutate(cumreturn_minvol = (cumprod(1 + PortfolioReturn))) %>% 
+#     mutate(cumreturn_minvol= cumreturn_minvol / first(cumreturn_minvol)) %>% select(-PortfolioReturn)
+```
+
+
+```{r}
+# Lastly look at Risk Parity Portfolio
+# 
+# From what I understand in this construction you need to calculate the covariance matrix by doing the following: 
+# I first need to get a vector of the volatility of each asset class
+# then get a correlation matrix between the asset classes
+
+
+library("riskParityPortfolio")
+#Getting optimal weights via Portfolio Optimization
+return_mat <- plotdf  %>% filter (date>="2002-02-28" & date<="2023-08-31") %>% select(date, Name, Returns) %>% spread(Name, Returns)
+
+# is there any NAs?
+# source("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/22581340_Financial-Econometrics/22581340_FE/code/Impute_NA_Returns.R")
+# impute_missing_returns(return_mat, impute_returns_method = "None") 
+# No Nas!!
+
+# Drop date column for this...
+return_mat_Nodate <- data.matrix(return_mat[, -1])
+vol <- return_mat %>% summarise(across(-date, ~var(.) %>% purrr::as_vector())) 
+vol <- c(0.0004533727,0.000297337,0.002291268,0.001893842,0.002066549)
+# Simple Sample covariance and mean:
+#for safety to avoid the impact of outliers
+# Ledoit Wolf shrinkage:
+cov<- RiskPortfolios::covEstimation(return_mat_Nodate, control = list(type = "lw"))
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+# Purely for safety reasons, to avoid a non-positive definite matrix breaking your function...
+corr <- round(cor(return_mat[,2:6], method = "pearson", use = "complete.obs"),4)
+
+sigma <- corr * (vol %o% vol) #according to rstudio method, NB ask if you should rather do it like this
+Sigma <- as.matrix( Matrix::nearPD(cov)$mat) #gives same results
+
+#define linear constraints
+
+Dmat <- matrix(0, 5, 5) # five: for the 5 asset classes and 5: for the number of constraints (will be using the same constraints as in the min variance) 
+# constraints: 1. UB, LB, bond, commodity,equity
+Dmat[1, ] <- c(rep(0, 3), rep(-1, 2))
+Dmat[2, ] <- c(rep(0, 2), rep(-1, 1), rep(0,2))
+Dmat[3, ] <- c(rep(-1, 2), rep(0,3))
+Dmat[4, ] <-rep(-1,5)
+Dmat[5,] <- rep(-1,5)
+
+dvec <- c(-0.6, -0.1, -0.25,-0.25, 0.01)
+
+
+
+# design portfolio
+rpp <- riskParityPortfolio(Sigma, Dmat = Dmat, dvec = dvec)
+
+
+# plot portfolio weights
+# barplotPortfolioRisk(rpp$w, Sigma)
+
+#check to see if constraints sum to one
+#print(sum(rpp$w))
+# library(RiskPortfolios)
+# optimalPortfolio(Sigma = Sigma,
+#                                control = list(type = "erc",
+#   
+
+
+```
+
+
+```{r}
+# plotting cumulative returns
+
+# return_mat_plot <- return_mat %>% filter(date %in%  Rebalance_Quarterly) %>% gather(Name, Returns, -date)
+
+weights_rp<- c("GlobalAgg Unhedged USD"= 3.574634e-08,"Gold Spot $/Oz (GOLDS COMDTY)"=1.500000e-01 ,"MSCI ACWI"= 2.941502e-01 ,"J433"=3.058498e-01 , "ALBI"= 2.500000e-01 )
+
+assign_weights <- function(df, weights) {
+  df$Weights <- weights[match(df$Name, unique(df$Name))]
+  return(df)
+}
+
+# Apply weights to return_mat_plot based on asset names
+t <- return_mat %>% gather(Name,Return,-date) %>% 
+  group_by(date) %>%
+  mutate(Weights = ifelse(row_number() <= length(weights_rp), weights_rp[row_number()], NA))
+
+weights_rp_new <- t[,c(1,2,4)]
+ 
+weights_rp_final <- weights_rp_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
+
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+
+Portfolio_RP <-  Safe_Return.portfolio(R = DT, weights = weights_rp_final, rebalance_on = "quarter", verbose=T)
+
+DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+
+RP_Porfolio_Returns <- 
+      Portfolio_RP$returns %>% xts_tbl() #get back to this
+
+
+#####################
+
+Cum_RP <-
+RP_Porfolio_Returns%>%
+    mutate(cumreturn_rp = (cumprod(1 + portfolio.returns))) %>%
+    mutate(cumreturn_rp= cumreturn_rp / first(cumreturn_rp)) %>% select(-portfolio.returns)
+# 
+# 
+# MV_Porfolio_Returns <- 
+#       Portfolio_MV$returns %>% xts_tbl() 
+# 
+# Cum_mvv <-
+# MV_Porfolio_Returns%>%
+#     mutate(cumreturn_mvv = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_mvv= cumreturn_mvv / first(cumreturn_mvv)) %>% select(-portfolio.returns)
+# 
+# data1_t <- left_join(Cum_mvv,Cum_W, by="date")
+# 
+# data2_t <- left_join(data1_t, Cum, by="date")
+# 
+# data3_t <- data2_t %>% gather(CumReturnType, Value, -date)
+# 
+# 
+# plot1_t <- data3_t %>% ggplot() +
+# geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7,
+#     size = 1) +
+# labs(title = "Rolling 3 Year Annualized Returns of Indices",
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)",
+#     caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30),
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) +
+# 
+# fmx_cols()
+# 
+# g_finplot_t <- finplot(plot1_t, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T,
+#     y.pct = T, y.pct_acc = 1)
+
+# the same
+
+
+```
+
+```{r Figure1,  warning =  FALSE, fig.align = 'center', fig.cap = "Relative risk contribution and Weights allocation of different portfolios \\label{Figure1}", fig.ext = 'png', fig.height = 4, fig.width = 7}
+#plotting weights risk concentration etc
+weights_EW <-  c("GlobalAgg Unhedged USD"=0.2, "Gold Spot $/Oz (GOLDS COMDTY)"=0.2, "MSCI ACWI"=0.2, "ALBI"=0.2, "J433"=0.2) 
+weights_minvol_plot <- c("GlobalAgg Unhedged USD"=0.25, "Gold Spot $/Oz (GOLDS COMDTY)"=0.1914959944937, "MSCI ACWI"=0.139207415247347, "ALBI"=0.25, "J433"=0.169296590258953) 
+weights_mv_plot <- c("GlobalAgg Unhedged USD"=0.01, "Gold Spot $/Oz (GOLDS COMDTY)"=0.25, "MSCI ACWI"=	0.240000000000001, "ALBI"=	0.249999999999998, "J433"=0.25) 
+# plot
+w_all <- cbind("Risk Parity"  = rpp$w,
+               "MVP" =weights_minvol_plot ,
+               "MVO"=weights_mv_plot,
+             "EW Porfolio"=weights_EW)
+
+
+barplotPortfolioRisk(w_all, Sigma)
+
+```
+
+```{r Figure2,  warning =  FALSE, fig.align = 'center', fig.cap = "Cumulative Returns \\label{Figure2}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+# Now I want to plot everything
+
+data1 <- left_join(Cum_MinVol,Cum_EW, by="date")
+
+data2 <- left_join(data1, Cum_RP, by="date")
+
+data3 <- left_join(data2, Cum_MV, by="date")
+
+data4 <- data3 %>% rename(MVP=cumreturn_minvol, EW=cumreturn_EW,"Risk Parity"=cumreturn_rp, MVO=cumreturn_mv) %>% gather(CumReturnType, Value, -date)
+
+             # New names
+
+
+
+
+plot1 <- data4 %>% ggplot() + 
+geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7, 
+    size = 1) + 
+labs(title = "Cumulative Return of Portfolios", 
+    subtitle = "", x = "", y = "Cumulative Return", 
+    caption = "Note:\nIndices were used to construct portfolios") + theme_fmx(title.size = ggpts(30), 
+    subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) + 
+    
+fmx_cols()
+
+g_finplot <- finplot(plot1, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T, 
+    y.pct = T, y.pct_acc = 1)
+
+g_finplot
+```
+
+
+```{r LongTable, results = 'asis'}
+
+# Doing tables
+
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+risk_free_rate<- combined_data %>% select("US Inflation Linkers", "date") %>% filter (date>="2002-02-28" & date<="2023-08-31")
+
+# Calculating Sharpe ratio for each portfolio
+
+
+SR_EW <- round(SharpeRatio.annualized(R=EW_portfolio_return_weighted, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
+SR_MinVol <- round(SharpeRatio.annualized(R=Weighted_Porfolio_Returns_MinVol, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
+SR_RP <- round(SharpeRatio.annualized(R=RP_Porfolio_Returns, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
+SR_MV <- round(SharpeRatio.annualized(R=Weighted_Porfolio_Returns_MV, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
+
+#Calculate annualised returns 
+EW_ann_Return <- round(Return.annualized(EW_portfolio_return_weighted, scale = 12, geometric = TRUE),2)
+Min_Vol_ann_Return <- round(Return.annualized(Weighted_Porfolio_Returns_MinVol, scale = 12, geometric = TRUE),2)
+RP_ann_Return <- round(Return.annualized(RP_Porfolio_Returns, scale = 12, geometric = TRUE),2)
+MV_ann_Return <- round(Return.annualized(Weighted_Porfolio_Returns_MV, scale = 12, geometric = TRUE),2)
+
+# Calvulating SD
+# EW_ann_SD <- round(StdDev.annualized(EW_portfolio_return_weighted, scale = ),2)
+# Min_Vol_ann_SD <- round(StdDev.annualized(Weighted_Porfolio_Returns_MinVol, scale = 12, geometric = TRUE),2)
+# RP_ann_SD <- round(StdDev.annualized(RP_Porfolio_Returns, scale = 12, geometric = TRUE),2)
+# MV_ann_SD <- round(StdDev.annualized(Weighted_Porfolio_Returns_MV, scale = 12, geometric = TRUE),2)
+
+ 
+table_data <- data.frame(cbind(Portfolio = c("Equally Weighted", "Minimum-Variance", "Mean-Variance","Risk Parity"),
+      `Returns(Ann.)` = c(EW_ann_Return, Min_Vol_ann_Return, MV_ann_Return,RP_ann_Return),
+      `Sharpe Ratio(Ann.)` = c(SR_EW,SR_MinVol,SR_MV, SR_RP)))
+
+
+
+gt(table_data) %>%
+  tab_header(
+    title = "Portfolio Performance"
+  ) %>%
+  cols_label(
+    Portfolio = "Portfolio",
+    Returns.Ann..="Returns (Ann.)",
+    Sharpe.Ratio.Ann..="Sharpe Ratio (Ann.)"
+  )
+```
+
+# Conclusion{-}
+
+In this comparative analysis, I scrutinized Mean-Variance Optimization (MVO), Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios. The findings unveiled the strengths and weaknesses inherent in each strategy. While MVO and MVP demonstrated superior risk-adjusted performance and concentration issues, the Risk Parity Portfolio exhibited balanced risk contributions across assets, albeit with certain sensitivity to asset selection. The study highlights the need for a nuanced approach in portfolio optimization, considering both returns and risk diversification. Such insights contribute significantly to navigating the complexities of contemporary financial markets and aid in constructing more robust investment strategies.
+
+```{r}
+# 
+# W_BPWeight_MinVol_new <- 
+#       Portfolio_MinVol$EOP.Weight %>% xts_tbl()  
+# W_BPWeight_MinVol_new%>% tbl_xts() %>% .[endpoints(.,'months')] %>% chart.StackedBar() #
+```
+
+
+<!-- The figure on the left-hand side shows the `cars` data. -->
+
+<!-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do -->
+<!-- eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut -->
+<!-- enim ad minim veniam, quis nostrud exercitation ullamco laboris -->
+<!-- nisi ut aliquip ex ea commodo consequat. -->
+<!-- ::: -->
+<!-- :::::: -->
+
+
+<!-- $$ -->
+<!-- This is a commented out section in the writing part. -->
+<!-- Comments are created by highlighting text, amnd pressing CTL+C -->
+<!-- \\begin{align} -->
+<!-- \\beta = \\alpha^2 -->
+<!-- \end{align} -->
+<!-- $$ -->
+
+
+
+
+\hfill
+
+<!-- hfill can be used to create a space, like here between text and table. -->
+
+
+
+
+
+<!-- Make title of bibliography here: -->
+<!-- \newpage -->
+
+\newpage
+
+\newpage
+
+# References {-}
+
+<div id="refs"></div>
+
+
+

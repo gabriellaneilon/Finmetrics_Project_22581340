@@ -1,0 +1,1177 @@
+---
+title: "FM_Project (draft)"
+author: "Gabriella Neilon"
+date: '2023-12-20'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+library(tidyverse)
+library(zoo)
+library("RcppRoll")
+library(fmxdat)
+if (!require("rmsfuns")) install.packages("rmsfuns")
+library(rmsfuns)
+library(tidyverse)
+pacman::p_load(tbl2xts)
+library(truncdist)
+library(rportfolios)
+library(rmsfuns)
+pacman::p_load("tidyr", "tbl2xts","devtools","lubridate", "readr", "PerformanceAnalytics", "ggplot2", "dplyr")
+pacman::p_load("tidyverse", "devtools", "FactoMineR", "factoextra", "broom", "rmsfuns")
+library(rmsfuns)
+load_pkg("PerformanceAnalytics")
+pacman::p_load("tbl2xts")
+pacman::p_load("xts", "tidyverse", "tbl2xts", "PerformanceAnalytics", 
+    "lubridate", "glue")
+
+library(ggExtra)
+library(MTS)
+library(PerformanceAnalytics)
+library(gt)
+library(dplyr)
+```
+
+## Data
+In this section I am just going to be exploring data to narrow down my topic
+
+```{r cars}
+cncy <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/currencies.rds")
+cncy_Carry <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/cncy_Carry.rds") 
+cncy_value <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/cncy_value.rds") 
+cncyIV <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/cncyIV.rds")
+bbdxy <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/bbdxy.rds")
+
+cncy_hedged <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Cncy_Hedge_Assets.rds")
+
+balanced_fund <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/Balanced_Fund_ACT_IDX.rds")
+
+bloomberg_commodities <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/Bloomberg_Commodities_Index.rds")
+
+indices <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/LCL_Indices.rds")
+stock_factors <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/LCL_Stock_Factors.rds")
+stock_returns <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/LCL_Stock_Returns.rds")
+
+global <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/2nd Semester/Financial Econometrics/Financial Econometrics Project/Data/Global_Indices.rds")
+
+ALSI <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/ALSI.rds")
+RebDays <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Rebalance_days.rds")
+Monthly_ZAR <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Monthly_zar.rds")
+```
+
+
+Looking at some data that may be useful...
+
+```{r}
+# Load data
+MAA <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/MAA.rds") %>% 
+    arrange(date)
+msci <-read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/msci.rds") %>%filter(Name %in% c("MSCI_ACWI", "MSCI_USA", "MSCI_RE", "MSCI_Jap")) %>%  arrange(date)
+
+
+
+# Load Data
+Indexes <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Cncy_Hedge_Assets.rds") 
+ZAR <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Monthly_zar.rds")
+```
+
+
+Now we begin
+```{r}
+# combine glibal indexes with loc al SA indexes 
+d1 <- global %>%
+  select(Name, Returns, date, YM) %>%
+  spread(key = Name, value = Returns)
+
+testing <- ceiling_date(Indexes$date, "month") - days(1)
+
+Indexes$date <- testing
+
+
+
+dates <- dateconverter(as.Date("2002-02-28"),as.Date("2023-08-31"),
+    "calendarEOM")
+
+
+
+
+RSA_indexes <- Indexes %>% select(date,J433, ALBI)
+
+indexes_final <- RSA_indexes%>% filter(date %in% dates)
+
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+final_data <- combined_data %>% select(-"AfricaXSA",-"FTSE EPRA/NAREIT Developed Dividend+ Index",-"FTSE Global Core Infrastructure Net Return", -"MSCI World Emerging Market", -"US 3 Month Libor Rate", -"US Inflation Linkers", -"VIX",-"BRENT") %>% gather(Name, Returns, -date,-YM) 
+
+```
+
+# First porfolio to contruct - one with equal weithings
+
+```{r}
+
+
+##plotting before capping etc
+plotdf <- 
+final_data %>% 
+# %>% group_by(Name) %>% 
+# # Epic sorcery:
+# mutate(RollRets = RcppRoll::roll_prod(1 + Returns, 36, fill = NA, 
+#     align = "right")^(12/36) - 1) %>% 
+# # Note this cool trick: it removes dates that have no
+# # RollRets at all.
+# 
+# group_by(date) %>% filter(any(!is.na(RollRets))) %>% 
+# ungroup()
+filter(Name %in%  c("Gold Spot $/Oz (GOLDS COMDTY)","GlobalAgg Unhedged USD", "MSCI ACWI","SP 500", "J433", "ALBI"))
+
+# g <- 
+# plotdf %>% 
+# ggplot() + 
+# geom_line(aes(date, RollRets, color = Name), alpha = 0.7, 
+#     size = 1.25) + 
+# labs(title = "Illustration of Rolling 3 Year Annualized Returns of various Indices with differing start dates", 
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)", 
+#     caption = "Note:\nDistortions are not evident now.") + theme_fmx(title.size = ggpts(30), 
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) +fmx_cols() 
+#     
+# 
+# g
+
+
+```
+First looking at equally weighted portfolio and rebalancing quarterly
+```{r}
+Rebalance_Quarterly <- 
+  
+  plotdf %>% 
+  
+  mutate(Year = format(date, "%Y"), Month = format(date, "%b"), Day = format(date, "%a")) %>% 
+  
+  filter(Month %in% c("Mar", "Jun", "Sep", "Dec")) %>% 
+  
+  select(date, Year,  Month, Day ) %>% unique() %>% 
+  
+  group_by(Year, Month) %>% 
+  
+  filter( date == last(date)) %>% 
+  
+  pull(date)
+
+
+
+#now create capped weights database
+# rebalance_col <-
+#   
+# plotdf  %>% 
+#   filter(date %in% Rebalance_Quarterly) %>% 
+#   
+#   # Now we have to distinguish rebalances - to create something to group by:
+#   mutate(RebalanceTime = format(date, "%Y%B")) %>% 
+#     mutate(MSCI_ACWI_wt = 1/6) %>% 
+#     mutate(Bbg_Agg_wt = 1/6) %>% 
+#     mutate(J433_wt = 1/6) %>% 
+#     mutate(ALBI_wt= 1/6) %>%
+#     mutate(gold_wt=1/6) %>% 
+#     mutate(sp500_wt=1/6) %>% 
+#     mutate(port_ret =(MSCI_ACWI*MSCI_ACWI_wt)+ (Bbg_Agg*Bbg_Agg_wt)+ (J433*J433_wt)+(ALBI*ALBI_wt)) %>% 
+#     select(date, port_ret)
+
+
+weights <-  c("GlobalAgg Unhedged USD"=0.1666666667, "Gold Spot $/Oz (GOLDS COMDTY)"=0.1666666667, "MSCI ACWI"=0.1666666667, "SP 500"=0.1666666667, "ALBI"=0.1666666667, "J433"=0.1666666667) 
+
+
+# Capping
+
+
+
+
+
+### tryihng something else
+
+# Function to assign weights based on asset names
+# assign_weights <- function(df, weights) {
+#   df$Weights <- weights[match(df$Name, unique(df$Name))]
+#   return(df)
+# }
+# 
+# # Apply weights to return_mat_plot based on asset names
+# data_naive<- plotdf %>% filter(date %in%  Rebalance_Quarterly) %>% 
+#   group_by(date) %>%
+#   mutate(Weights = ifelse(row_number() <= length(weights_rp), weights_rp[row_number()], NA))
+# 
+# 
+# # now for the plotting
+# # Calculate Portfolio Returns:
+# weighted_returns_naive <- 
+#   data_naive %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*Weights, na.rm =TRUE)) %>% 
+#       filter(PortfolioReturn != 0)
+# 
+# 
+# 
+# 
+# Cum_W <- 
+# weighted_returns_naive%>% 
+#     mutate(cumreturn_W = (cumprod(1 + PortfolioReturn))) %>% 
+#     mutate(cumreturn_W = cumreturn_W / first(cumreturn_W)) %>% select(-PortfolioReturn)
+```
+
+EW
+```{r}
+#create portfolio rebalancing quarterly
+
+
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% spread(Name,Returns)
+
+DT <- DT %>% tbl_xts()
+
+weights <-  c(0.1666666667, 0.1666666667, 0.1666666667, 0.1666666667,0.1666666667, 0.1666666667) 
+Portfolio <-  Return.portfolio(R = DT, weights = weights, rebalance_on = "quarter", verbose=T)
+
+DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+# Clean and save portfolio returns and weights:
+W_Contribution <- 
+      Portfolio$contribution %>% xts_tbl() 
+
+W_BPWeight <- 
+      Portfolio$BOP.Weight %>% xts_tbl()  
+
+W_BPValue <- 
+      Portfolio$BOP.Value %>% xts_tbl()
+
+  
+    names(W_Contribution) <- c("date", names(Portfolio$contribution))
+    names(W_BPWeight) <- c("date", names(Portfolio$BOP.Weight))
+    names(W_BPValue) <- c("date", names(Portfolio$BOP.Value))
+
+W_BPWeight <- W_BPWeight %>% gather(Name, Weight, -date)
+W_BPValue<- W_BPValue %>% gather(Name, value_held, -date)
+W_Contribution <- W_Contribution %>% gather(Name, Contribution, -date)
+
+names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+  # Names to be replaced
+new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+
+# Replace specific column names
+W_BPWeight <- W_BPWeight %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_BPValue <-  W_BPValue %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_Contribution <- W_Contribution %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+
+df_port_return_W <- 
+      left_join(DATA,
+                W_BPWeight,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_BPValue,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_Contribution,
+                by = c("date", "Name"))
+
+
+```
+Plotting the cumulative returns of porfolio construction according to the "Naive" portfolio weigths
+```{r}
+# Calculate Portfolio Returns:
+EW_portfolio_return <- 
+    df_port_return_W %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*Weight, na.rm =TRUE)) %>% 
+      filter(PortfolioReturn != 0) # this gives the same as when you take the porfolio.return
+
+
+Cum_EW <- 
+EW_portfolio_return%>% 
+    mutate(cumreturn_EW = (cumprod(1 + PortfolioReturn))) %>% 
+    mutate(cumreturn_EW = cumreturn_EW / first(cumreturn_EW)) %>% select(-PortfolioReturn)
+
+
+```
+
+# Porfolio construction using Minimum Variance Portfolio
+
+The portfolio is subject to quarterly rebalancing to maintain alignment with predefined exposure thresholds, including a 25% limit on Bonds,credit instruments and commodoties, a maximum of 60% exposure to Equities, and a cap of 40% on single asset exposure. Utilizing monthly data, a
+covariance matrix has been estimated using datasets available post-2010 for analytical purposes.
+
+```{r}
+# first use method in class then compare it with method found on Google
+
+library(PortfolioAnalytics)
+#now what it the optimal weight of each equity? remember that the "limit exposure" instruction is how I am going to cap my porfolio
+
+#Getting optimal weights via Portfolio Optimization
+return_mat <- plotdf  %>% filter (date>="2002-02-28" & date<="2023-08-31") %>% select(date, Name, Returns) %>% spread(Name, Returns)
+
+# is there any NAs?
+# source("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/22581340_Financial-Econometrics/22581340_FE/code/Impute_NA_Returns.R")
+# impute_missing_returns(return_mat, impute_returns_method = "None") 
+# No Nas!!
+
+# Drop date column for this...
+return_mat_Nodate <- data.matrix(return_mat[, -1])
+
+# Simple Sample covariance and mean:
+#for safety to avoid the impact of outliers
+# Ledoit Wolf shrinkage:
+Sigma_LW <- RiskPortfolios::covEstimation(return_mat_Nodate, control = list(type = "lw"))
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+# Purely for safety reasons, to avoid a non-positive definite matrix breaking your function...
+Sigma <- as.matrix( Matrix::nearPD(Sigma_LW)$mat)
+
+#Now let's begin with other constraints to design Amat and bvec
+
+NStox <- ncol( return_mat_Nodate )
+LB = 0.01
+UB = 0.25
+meq = 1 # as only the first column of Amat is an equality (weight sum equals 1)
+
+# Additional constraints
+bond_credit_limit <- 0.25
+equities_limit <- 0.60
+
+
+
+# Define the new order of asset classes
+#new_order <- c("bond", "bond", "commodity", "equity", "equity", "equity")
+
+eq_const_mat<-  rbind(matrix(0, nrow = 3, ncol = 3),
+                    -diag(3))
+
+
+bond_const_mat <- rbind(matrix(0, nrow = 0, ncol = 2),
+                     -diag(2),
+                     matrix(0, nrow = 4, ncol = 2))
+
+bvec <- c( 1, rep(LB, NStox), -rep(UB, NStox), -rep(bond_credit_limit, 2), -rep(equities_limit, 3))
+Amat <- cbind(1, diag(NStox), -diag(NStox),-bond_const_mat, eq_const_mat )
+  # Adjustment for the equities limit
+  
+# we will use the quadprog package"
+  w.opt <- 
+    quadprog::solve.QP(Dmat = Sigma,
+                            dvec = Mu, 
+                            Amat = Amat, 
+                            bvec = bvec, 
+                            meq = meq)$solution
+
+ result.QP <- tibble(stocks = colnames(Sigma), weight = w.opt) 
+```
+
+```{r}
+# Using alternative method in practical using  CVXR package to see if the results are the same
+pacman::p_load(CVXR)
+
+w <- Variable(NStox)
+ret <- t(Mu) %*% w
+risk <- quad_form(w, Sigma)
+obj <- ret - risk
+constr <- list(w >= LB, w <= UB, sum(w) == 1, w <= 0.25,w<= 0.60)
+#constr <- list(p_norm(w,1) <= Lmax, sum(w) == 1)
+prob <- Problem(Maximize(obj), constr)
+result <- solve(prob)
+result.CVXR <- tibble(stocks = colnames(Sigma), weight = result$getValue(w) %>% as.vector())
+
+# I get the same results
+
+
+
+#Type = "minvol"
+#RiskPortfolios::optimalPortfolio(mu = Mu, Sigma = Sigma, 
+                # control = list(type = Type, constraint = 'user', 
+                #                LB = rep(LB, ncol(Sigma)), 
+                #                UB = rep(UB, ncol(Sigma)),
+                #                bond_credit_limit = rep(bond_credit_limit,ncol(Sigma)),
+                #                equities_limit = rep(equities_limit, ncol(Sigma))))
+```
+
+```{r}
+LB = 0.01
+UB = 0.25
+meq = 1 # as only the first column of Amat is an equality (weight sum equals 1)
+
+# Additional constraints
+bond_credit_limit <- 0.25
+equities_limit <- 0.60
+
+# Using function from class (NB: remember to put into differents files for final)
+
+optim_foo <- function(Type = "mv", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit,printmsg = TRUE){
+
+  Safe_Optim <- purrr::safely(RiskPortfolios::optimalPortfolio)
+        
+Opt_W <- 
+        Safe_Optim(mu = Mu, Sigma = Sigma, 
+                control = list(type = Type, constraint = 'user', 
+                               LB = rep(LB, ncol(Sigma)), 
+                               UB = rep(UB, ncol(Sigma)),
+                               bond_credit_limit = rep(bond_credit_limit,ncol(Sigma)),
+                               equities_limit = rep(equities_limit, ncol(Sigma))))
+
+if( is.null(Opt_W$error)){
+  
+  optimw <- 
+    tibble(Tickers = colnames(Sigma), weights = Opt_W$result) %>% 
+    # Take note:
+    rename(!!Type := weights)
+  
+  if(printmsg)   optimw <- optimw %>% mutate(Result = glue::glue("Converged: {Type}"))
+  
+} else {
+  
+  optimw <- tibble(Tickers = colnames(Sigma), weights = 1/ncol(Sigma)) %>% 
+    # Take note:
+    rename(!!Type := weights)
+
+ 
+  if(printmsg)   optimw <- optimw %>% mutate(Result = glue::glue("Failed to Converge: {Type}"))
+  
+}
+     optimw
+}
+
+
+# apply function
+My_Weights <- left_join(
+  optim_foo(Type = "mv", Mu, Sigma, LB, UB ,bond_credit_limit, equities_limit, printmsg = F),
+  optim_foo(Type = "minvol", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+  by = c("Tickers")) %>% 
+    left_join(.,optim_foo(Type = "erc", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+      left_join(.,optim_foo(Type = "riskeff", Mu, Sigma, LB, UB , bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers"))
+  
+
+
+
+
+# Function from class
+EOM_datevec <- return_mat %>% select(date) %>% unique %>% mutate(YM = format(date, "%Y%B")) %>% group_by(YM) %>% filter(date == last(date)) %>% ungroup() %>% pull(date) %>% unique
+
+Roll_optimizer <- function(return_mat, EOM_datevec, LookBackSel = 36){
+  
+return_df_used <- return_mat %>% filter(date >= EOM_datevec %m-% months(LookBackSel))
+  
+if(return_df_used %>% nrow() < LookBackSel) return(NULL) # PRO TIP - return NULL effectively skips the iteration when binding....
+
+return_mat_Nodate <- data.matrix(return_df_used[, -1])
+# Simple Sample covariance and mean for the lookback period:
+Sigma <- RiskPortfolios::covEstimation(return_mat_Nodate)
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+
+
+My_Weights <- 
+  left_join(
+  optim_foo(Type = "mv", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+  optim_foo(Type = "minvol", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),
+  by = c("Tickers")) %>% 
+    left_join(.,optim_foo(Type = "erc", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+      left_join(.,optim_foo(Type = "riskeff", Mu, Sigma, LB, UB, bond_credit_limit, equities_limit, printmsg = F),by = c("Tickers")) %>% 
+  
+  mutate(date = EOM_datevec, Look_Back_Period = LookBackSel)
+  
+}
+```
+
+```{r}
+All_Result <- 
+EOM_datevec %>% map_df(~Roll_optimizer(return_mat, EOM_datevec = ., LookBackSel = 36)) %>% rename(Name=Tickers)
+
+All_Returns<- return_mat %>% gather(Name, Returns,-date)
+All_Result_new <- left_join(All_Returns,All_Result,by=c("date", "Name")) #not sure if this is important yet
+
+
+
+```
+
+This section I'm testing something out
+```{r}
+#NBNBNB this is only for testing
+# wts_mv_mv <- MV_Result[,c(6,1,2)]
+# 
+# wts_new_mv_mv <- wts_mv_mv %>% tbl_xts(., cols_to_xts = mv, spread_by = Name)
+# 
+# DT_MV_MV <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_mv_mv <-  Safe_Return.portfolio(R = DT_MV_MV, weights = wts_new_mv_mv, rebalance_on = "quarter",verbose=T)
+# 
+# 
+# mv_mv_Porfolio_Returns <- 
+#       Portfolio_mv_mv$returns %>% xts_tbl() 
+# 
+# Cum_mv_mv <-
+# mv_mv_Porfolio_Returns%>%
+#     mutate(cumreturn_mv_mv = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_mv_mv= cumreturn_mv_mv / first(cumreturn_mv_mv)) %>% select(-portfolio.returns)
+# 
+# #####################################
+# wts_erc <- MV_Result[,c(6,1,4)]
+# 
+# wts_new_erc <- wts_erc %>% tbl_xts(., cols_to_xts = erc, spread_by = Name)
+# 
+# DT_erc <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_erc <-  Safe_Return.portfolio(R = DT_erc, weights = wts_new_erc, rebalance_on = "quarter",verbose=T)
+# 
+# 
+# erc_Porfolio_Returns <- 
+#       Portfolio_erc$returns %>% xts_tbl() 
+# 
+# Cum_erc <-
+# erc_Porfolio_Returns%>%
+#     mutate(cumreturn_erc = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_erc= cumreturn_erc / first(cumreturn_erc)) %>% select(-portfolio.returns)
+# 
+# #################################
+# 
+# wts_riskeff <- MV_Result[,c(6,1,5)]
+# 
+# wts_new_riskeff <- wts_riskeff %>% tbl_xts(., cols_to_xts = riskeff, spread_by = Name)
+# 
+# DT_riskeff <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+# Portfolio_riskeff <-  Safe_Return.portfolio(R = DT_riskeff, weights = wts_new_riskeff, rebalance_on = "quarter",verbose=T)
+# 
+# 
+# riskeff_Porfolio_Returns <- 
+#       Portfolio_riskeff$returns %>% xts_tbl() 
+# 
+# Cum_riskeff <-
+# riskeff_Porfolio_Returns%>%
+#     mutate(cumreturn_riskeff = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_riskeff= cumreturn_riskeff / first(cumreturn_riskeff)) %>% select(-portfolio.returns)
+# 
+# ######################
+# 
+# 
+# data1_t <- left_join(Cum_mv,Cum_mv_mv, by="date")
+# 
+# data2_t <- left_join(data1_t, Cum_erc, by="date")
+# 
+# data3_t <- left_join(data2_t, Cum_riskeff, by="date")
+# 
+# data4_t <- data3_t %>% gather(CumReturnType, Value, -date)
+# 
+# 
+# plot1_t <- data4_t %>% ggplot() +
+# geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7,
+#     size = 1) +
+# labs(title = "Rolling 3 Year Annualized Returns of Indices",
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)",
+#     caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30),
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) +
+# 
+# fmx_cols()
+# 
+# g_finplot_t <- finplot(plot1_t, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T,
+#     y.pct = T, y.pct_acc = 1)
+```
+
+Now calculate rebalanvce quarterly and calculate the return of it based on the minvol 
+
+
+```{r}
+#NBNBNB use this one
+weights_minvol <- All_Result[,c(6,1,3)]
+
+weights_new_minvol <- weights_minvol %>% tbl_xts(., cols_to_xts = minvol, spread_by = Name)
+DT_MinVol <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+Portfolio_MinVol <-  Safe_Return.portfolio(R = DT_MinVol, weights = weights_new_minvol, rebalance_on = "quarter",verbose=T)
+
+DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+# Clean and save portfolio returns and weights:
+W_Contribution_MV <- 
+      Portfolio_MV$contribution %>% xts_tbl() 
+
+W_BPWeight_MV <- 
+      Portfolio_MV$BOP.Weight %>% xts_tbl()  
+
+W_BPValue_MV <- 
+      Portfolio_MV$BOP.Value %>% xts_tbl()
+
+  
+    names(W_Contribution_MV) <- c("date", names(Portfolio_MV$contribution))
+    names(W_BPWeight_MV) <- c("date", names(Portfolio_MV$BOP.Weight))
+    names(W_BPValue_MV) <- c("date", names(Portfolio_MV$BOP.Value))
+
+W_BPWeight_MV <- W_BPWeight_MV %>% gather(Name, Weight, -date)
+W_BPValue_MV<- W_BPValue_MV %>% gather(Name, value_held, -date)
+W_Contribution_MV <- W_Contribution_MV %>% gather(Name, Contribution, -date)
+
+names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+  # Names to be replaced
+new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+
+# Replace specific column names
+W_BPWeight_MV <- W_BPWeight_MV %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_BPValue_MV <-  W_BPValue_MV %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+W_Contribution_MV <- W_Contribution_MV %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+
+portfolio_return_MinVol <- 
+      left_join(DATA,
+                W_BPWeight_MV,#dont know if this is significant
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_BPValue_MV,
+                by = c("date", "Name") ) %>% 
+      
+      left_join(.,
+                W_Contribution_MV,
+                by = c("date", "Name"))
+
+# Rebalance_Quarterly <- 
+#   
+#   return_mat %>% 
+#   
+#   mutate(Year = format(date, "%Y"), Month = format(date, "%b"), Day = format(date, "%a")) %>% 
+#   
+#   dplyr::filter(Month %in% c("Mar", "Jun", "Sep", "Dec")) %>% 
+#   
+#   select(date, Year,  Month, Day ) %>% unique() %>% 
+#   
+#   group_by(Year, Month) %>% 
+#   
+#   filter( date == last(date)) %>% 
+#   
+#   pull(date)
+
+
+# new_dat_MV %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*minvol, na.rm =TRUE)) %>% 
+#       filter(PortfolioReturn != 0) #gives same results
+
+weighted_returns_porfolio_MinVol <- 
+    All_Result_new %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*minvol, na.rm =TRUE)) %>% 
+      filter(PortfolioReturn != 0)
+
+
+Cum_minvol <- 
+weighted_returns_porfolio_MV%>% 
+    mutate(cumreturn_minvol = (cumprod(1 + PortfolioReturn))) %>% 
+    mutate(cumreturn_minvol= cumreturn_minvol / first(cumreturn_minvol)) %>% select(-PortfolioReturn)
+```
+Lastly look at Risk Parity Portfolio
+
+From what I understand in this construction you need to calculate the covariance matrix by doing the following: 
+I first need to get a vector of the volatility of each asset class
+then get a correlation matrix between the asset classes
+
+```{r}
+library("riskParityPortfolio")
+#Getting optimal weights via Portfolio Optimization
+return_mat <- plotdf  %>% filter (date>="2002-02-28" & date<="2023-08-31") %>% select(date, Name, Returns) %>% spread(Name, Returns)
+
+# is there any NAs?
+# source("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/22581340_Financial-Econometrics/22581340_FE/code/Impute_NA_Returns.R")
+# impute_missing_returns(return_mat, impute_returns_method = "None") 
+# No Nas!!
+
+# Drop date column for this...
+return_mat_Nodate <- data.matrix(return_mat[, -1])
+vol <- return_mat %>% summarise(across(-date, ~var(.) %>% purrr::as_vector())) 
+vol <- c(0.0004533727,0.000297337,0.002291268,0.001893842,0.002066549,0.001902248)
+# Simple Sample covariance and mean:
+#for safety to avoid the impact of outliers
+# Ledoit Wolf shrinkage:
+cov<- RiskPortfolios::covEstimation(return_mat_Nodate, control = list(type = "lw"))
+Mu <- return_mat %>% summarise(across(-date, ~prod(1+.)^(1/n())-1)) %>% purrr::as_vector()
+# Purely for safety reasons, to avoid a non-positive definite matrix breaking your function...
+corr <- round(cor(return_mat[,2:7], method = "pearson", use = "complete.obs"),4)
+
+sigma <- corr * (vol %o% vol) #according to rstudio method, NB ask if you should rather do it like this
+Sigma <- as.matrix( Matrix::nearPD(cov)$mat)
+
+#define linear constraints
+
+Dmat <- matrix(0, 4, 6) # six: for the six asset classes and four: for the number of constraints (will be using the same constraints as in the min variance) 
+# constraints: 1. UB, LB, bond, equity
+Dmat[1, ] <- c(rep(0, 3), rep(-1, 3))
+Dmat[2, ] <- c(rep(-1, 2), rep(0, 4))
+Dmat[3, ] <- rep(-1, 6)
+Dmat[4, ] <- rep(-1, 6)
+
+
+dvec <- c(-0.6, -0.25, -0.25, 0.01)
+
+# design portfolio
+rpp <- riskParityPortfolio(Sigma, Dmat = Dmat, dvec = dvec)
+
+
+# plot portfolio weights
+barplotPortfolioRisk(rpp$w, Sigma)
+
+#check to see if constraints sum to one
+#print(sum(rpp$w))
+# library(RiskPortfolios)
+# optimalPortfolio(Sigma = Sigma,
+#                                control = list(type = "erc",
+#   
+```
+
+plotting cumulative returns
+```{r}
+# return_mat_plot <- return_mat %>% filter(date %in%  Rebalance_Quarterly) %>% gather(Name, Returns, -date)
+
+weights_rp<- c("GlobalAgg Unhedged USD"=0.1003022,"Gold Spot $/Oz (GOLDS COMDTY)"=0.15,"MSCI ACWI"=0.1829455,"SP 500"=0.2037860,"J433"=0.2132685, "ALBI"=0.1496978)
+
+assign_weights <- function(df, weights) {
+  df$Weights <- weights[match(df$Name, unique(df$Name))]
+  return(df)
+}
+
+# Apply weights to return_mat_plot based on asset names
+t <- return_mat %>% gather(Name,Return,-date) %>% 
+  group_by(date) %>%
+  mutate(Weights = ifelse(row_number() <= length(weights_rp), weights_rp[row_number()], NA))
+
+weights_rp_new <- t[,c(1,2,4)]
+ 
+weights_rp_final <- weights_rp_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
+
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name)
+
+Portfolio_RP <-  Safe_Return.portfolio(R = DT, weights = weights_rp_final, rebalance_on = "quarter", verbose=T)
+
+DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+
+RP_Porfolio_Returns <- 
+      Portfolio_RP$returns %>% xts_tbl() #get back to this
+
+
+#####################
+
+Cum_RP <-
+RP_Porfolio_Returns%>%
+    mutate(cumreturn_rp = (cumprod(1 + portfolio.returns))) %>%
+    mutate(cumreturn_rp= cumreturn_rp / first(cumreturn_rp)) %>% select(-portfolio.returns)
+# 
+# 
+# MV_Porfolio_Returns <- 
+#       Portfolio_MV$returns %>% xts_tbl() 
+# 
+# Cum_mvv <-
+# MV_Porfolio_Returns%>%
+#     mutate(cumreturn_mvv = (cumprod(1 + portfolio.returns))) %>%
+#     mutate(cumreturn_mvv= cumreturn_mvv / first(cumreturn_mvv)) %>% select(-portfolio.returns)
+# 
+# data1_t <- left_join(Cum_mvv,Cum_W, by="date")
+# 
+# data2_t <- left_join(data1_t, Cum, by="date")
+# 
+# data3_t <- data2_t %>% gather(CumReturnType, Value, -date)
+# 
+# 
+# plot1_t <- data3_t %>% ggplot() +
+# geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7,
+#     size = 1) +
+# labs(title = "Rolling 3 Year Annualized Returns of Indices",
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)",
+#     caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30),
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) +
+# 
+# fmx_cols()
+# 
+# g_finplot_t <- finplot(plot1_t, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T,
+#     y.pct = T, y.pct_acc = 1)
+
+# the same
+
+
+```
+
+Now I want to plot everything
+
+```{r}
+data1 <- left_join(Cum_minvol,Cum_EW, by="date")
+
+data2 <- left_join(data1, Cum_RP, by="date")
+
+data3 <- data2 %>% gather(CumReturnType, Value, -date)
+
+names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+  # Names to be replaced
+new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+
+# Replace specific column names
+W_BPWeight_MV <- W_BPWeight_MV %>%
+  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+
+
+plot1 <- data3 %>% ggplot() + 
+geom_line(aes(date, Value, color = CumReturnType), alpha = 0.7, 
+    size = 1) + 
+labs(title = "Rolling 3 Year Annualized Returns of Indices", 
+    subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)", 
+    caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30), 
+    subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) + 
+    
+fmx_cols()
+
+g_finplot <- finplot(plot1, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T, 
+    y.pct = T, y.pct_acc = 1)
+
+
+```
+
+Doing tables
+```{r}
+
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+risk_free_rate<- combined_data %>% select("US Inflation Linkers", "date") %>% filter (date>="2002-02-28" & date<="2023-08-31")
+
+# Calculating Sharpe ratio for each portfolio
+
+
+SR_EW <- SharpeRatio.annualized(R=EW_portfolio_return, Rf = risk_free_rate, scale = 12, geometric=TRUE)
+SR_MinVol <- SharpeRatio.annualized(R=weighted_returns_porfolio_MinVol, Rf = risk_free_rate, scale = 12, geometric=TRUE)
+SR_RP <- SharpeRatio.annualized(R=RP_Porfolio_Returns, Rf = risk_free_rate, scale = 12, geometric=TRUE)
+
+
+#Calculate annualised returns 
+EW_ann_Return <- Return.annualized(EW_portfolio_return, scale = 12, geometric = TRUE)
+Min_Vol_ann_Return <- Return.annualized(weighted_returns_porfolio_MinVol, scale = 12, geometric = TRUE)
+RP_ann_Return <- Return.annualized(RP_Porfolio_Returns, scale = 12, geometric = TRUE)
+
+
+table_data <- data.frame(cbind(Portfolio = c("Equally Weighted", "Minimum-Variance", "Risk Parity"),
+      `Returns(Ann.)` = c(EW_ann_Return, Min_Vol_ann_Return, RP_ann_Return),
+      `Sharpe Ratio(Ann.)` = c(SR_EW,SR_MinVol, SR_RP)))
+
+
+
+gt(table_data) %>%
+  tab_header(
+    title = "Portfolio Performance"
+  ) %>%
+  cols_label(
+    Portfolio = "Portfolio",
+    Returns.Ann..="Returns (Ann.)",
+    Sharpe.Ratio.Ann..="Sharpe Ratio (Ann.)"
+  )
+
+
+```
+```{r}
+#plotting weights risk concentration etc
+weights_EW <-  c("GlobalAgg Unhedged USD"=0.1666666667, "Gold Spot $/Oz (GOLDS COMDTY)"=0.1666666667, "MSCI ACWI"=0.1666666667, "SP 500"=0.1666666667, "ALBI"=0.1666666667, "J433"=0.1666666667) 
+# plot
+w_all <- cbind("riskParityPortfolio"  = rpp$w,
+               "MinVol" =My_Weights$minvol ,
+             "EW Porfolio"=weights_EW)
+barplotPortfolioRisk(w_all, Sigma)
+
+
+
+
+W_BPWeight_MV %>% tbl_xts() %>% .[endpoints(.,'months')] %>% chart.StackedBar() #get back to this
+
+#risk contrib
+
+# To calculate the risk contribution for SD, note we are effectively taking the average weights over time:
+wts <- 
+  
+  Portfolio_MinVol$BOP.Weight %>% xts_tbl %>% 
+  
+  summarise( across(.cols = -date, .fns = ~mean(., na.rm=T)) ) %>% gather(Type, wt)
+
+Contribution <- Portfolio_MinVol$contribution %>% xts_tbl()
+
+# And using the actual returns:
+SD_Risk_Contributors_direct <- 
+  
+StdDev( R = DT, 
+        
+        portfolio_method = "component", weights = wts$wt) %>% 
+  
+  .$pct_contrib_StdDev %>% data.frame(Risk_Contrib = .) %>% 
+  
+  tibble::rownames_to_column("Name") %>% arrange(desc(Risk_Contrib))
+
+
+
+```
+
+
+
+```{r}
+############################
+# Rolling returns
+# data_for_t <- left_join(RP_Porfolio_Returns,MV_Porfolio_Returns,by="date")
+# 
+# date_new_tn <- left_join(data_for_t,df_Portf_W, by="date")
+# 
+# plottidydat <- 
+# date_new_tn %>% gather(Name, Returns,-date) %>%
+#     group_by(Name) %>% 
+# mutate(RollRets = RcppRoll::roll_prod(1 + Returns, 36, fill = NA, 
+#     align = "right")^(12/36) - 1) %>% 
+# group_by(date) %>% filter(any(!is.na(RollRets))) %>% 
+# ungroup()
+# 
+# 
+# plottidydat %>% 
+# ggplot() + 
+# geom_line(aes(date, RollRets, color = Name), alpha = 0.7, 
+#     size = 1) + 
+# labs(title = "Rolling 3 Year Annualized Returns of Indices", 
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)", 
+#     caption = "Note:\nIndustry Index is a basic calculation for grouping together the comparative industries for better comparisons") + theme_fmx(title.size = ggpts(30), 
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) + 
+#     
+# fmx_cols()
+
+###################
+# Rolling SD
+
+# sd_plot <- date_new_tn %>% gather(Name, Returns,-date) %>%
+# group_by(Name) %>% 
+# # Rolling SD annualized calc now:
+# mutate(RollSD = RcppRoll::roll_sd(1 + Returns, 36, fill = NA, align = "right") * 
+#     sqrt(12)) %>% 
+# filter(!is.na(RollSD))
+# 
+# 
+# sd_plot %>% 
+# ggplot() + 
+# geom_line(aes(date, RollSD, color = Name), alpha = 0.7, size = 1.25) + 
+#     
+# labs(title = "Illustration of Rolling 3 Year Annualized SD of various Indices with differing start dates", 
+#     subtitle = "", x = "", y = "Rolling 3 year Returns (Ann.)", 
+#     caption = "Note:\nDistortions are not evident now.") + theme_fmx(title.size = ggpts(30), 
+#     subtitle.size = ggpts(5), caption.size = ggpts(25), CustomCaption = T) + 
+#     
+# fmx_cols()
+# 
+# finplot(g, x.date.dist = "1 year", x.date.type = "%Y", x.vert = T, 
+#     y.pct = T, y.pct_acc = 1)
+```
+LOOKING AT VOLATILITY
+dataset to use
+```{r}
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+data_vol <- combined_data %>% select(-"AfricaXSA",-"FTSE EPRA/NAREIT Developed Dividend+ Index",-"FTSE Global Core Infrastructure Net Return", -"MSCI World Emerging Market", -"US 3 Month Libor Rate", -"US Inflation Linkers") %>% gather(Name, Returns, -date,-YM) 
+
+data_vol_final <- 
+data_vol %>% 
+# %>% group_by(Name) %>% 
+# # Epic sorcery:
+# mutate(RollRets = RcppRoll::roll_prod(1 + Returns, 36, fill = NA, 
+#     align = "right")^(12/36) - 1) %>% 
+# # Note this cool trick: it removes dates that have no
+# # RollRets at all.
+# 
+# group_by(date) %>% filter(any(!is.na(RollRets))) %>% 
+# ungroup()
+filter(Name %in%  c("Gold Spot $/Oz (GOLDS COMDTY)","GlobalAgg Unhedged USD", "MSCI ACWI","SP 500", "J433", "ALBI", "VIX", "BRENT")) %>% filter (date>="2002-02-28" & date<="2023-08-31")
+
+Monthly_ZAR <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Monthly_zar.rds")
+ZAR.USD <- Monthly_ZAR  %>% tbl_xts(., cols_to_xts = value, spread_by = Tickers) %>% xts_tbl()%>%  mutate(ZAR.USD.Return=X.ZAR.USD/lag(X.ZAR.USD)-1) %>% select(-X.ZAR.USD) %>% gather("Index", "Return",-date)
+
+
+```
+
+
+begin the fun
+this looks at how during high volatility perods of the rand how th e different indices behave (i.e. local perpective)
+```{r}
+Idxs <-
+    
+    data_vol_final %>% 
+      mutate(Year = format(date, "%Y")) %>% 
+    
+    group_by(Name) %>% 
+    
+    mutate(Top = quantile(Returns, 0.99), Bot = quantile(Returns, 0.01)) %>% 
+    
+    mutate(Returns = ifelse(Returns > Top, Top, 
+                        
+                        ifelse(Returns< Bot, Bot, Returns))) %>% ungroup()
+
+ZARSD <- ZAR.USD %>% 
+    filter(date>=lubridate::ymd(20020228)) %>% #to match the index data
+    mutate(Year = format(date, "%Y")) %>%#to match the index data
+    arrange(date) %>% 
+    group_by(Year) %>% summarise(SD = sd(Return)*sqrt(12)) %>% 
+    
+    # Top Decile Quantile overall (highly volatile month for ZAR:
+    mutate(TopQtile = quantile(SD, 0.8, na.rm = TRUE),
+           
+           BotQtile = quantile(SD, 0.2, na.rm = TRUE))
+
+
+
+Hi_Vol <- ZARSD %>% filter(SD > TopQtile) %>% pull(Year)
+
+Low_Vol <- ZARSD %>% filter(SD < BotQtile) %>% pull(Year)
+
+Perf_comparisons_new <- function(Idxs, Ys, Alias){
+   
+    Unconditional_SD <- 
+        
+        Idxs %>% 
+        
+        group_by(Name) %>% 
+        
+        mutate(Full_SD = sd(Returns) * sqrt(12)) %>% 
+        
+        filter(Year %in% Ys) %>% 
+        
+        summarise(SD = sd(Returns) * sqrt(12), across(.cols = starts_with("Full"), .fns = max)) %>% 
+        
+        arrange(desc(SD)) %>% mutate(Period = Alias) %>% 
+        
+        group_by(Name) %>% 
+        
+        mutate(Ratio = SD / Full_SD)
+    
+    Unconditional_SD
+    
+}
+
+perf_hi <- Perf_comparisons_new(Idxs, Ys = Hi_Vol, Alias = "High_Vol")
+
+perf_lo <- Perf_comparisons_new(Idxs, Ys = Low_Vol, Alias = "Low_Vol")
+
+print(perf_hi)
+print(perf_lo)
+
+
+#try to plot something
+
+
+```
+
+global perspective using VIX
+
+```{r}
+VIX <- data_vol_final %>% 
+    filter(Name %in% "VIX") %>% 
+    filter(date>=lubridate::ymd(20020228)) %>% #to match the index data
+    mutate(Year = format(date, "%Y")) %>%#to match the index data
+    arrange(date) %>% 
+    group_by(Year) %>% summarise(SD = sd(Returns)*sqrt(12)) %>% 
+    
+    # Top Decile Quantile overall (highly volatile month for ZAR:
+    mutate(TopQtile = quantile(SD, 0.8, na.rm = TRUE),
+           
+           BotQtile = quantile(SD, 0.2, na.rm = TRUE))
+
+
+
+Hi_Vol_global <- VIX %>% filter(SD > TopQtile) %>% pull(Year)
+
+Low_Vol_global <- VIX %>% filter(SD < BotQtile) %>% pull(Year)
+
+Perf_comparisons_new <- function(Idxs, Ys, Alias){
+   
+    Unconditional_SD <- 
+        
+        Idxs %>% 
+        
+        group_by(Name) %>% 
+        
+        mutate(Full_SD = sd(Returns) * sqrt(12)) %>% 
+        
+        filter(Year %in% Ys) %>% 
+        
+        summarise(SD = sd(Returns) * sqrt(12), across(.cols = starts_with("Full"), .fns = max)) %>% 
+        
+        arrange(desc(SD)) %>% mutate(Period = Alias) %>% 
+        
+        group_by(Name) %>% 
+        
+        mutate(Ratio = SD / Full_SD)
+    
+    Unconditional_SD
+    
+}
+
+perf_hi_global <- Perf_comparisons_new(Idxs, Ys = Hi_Vol_global, Alias = "High_Vol")
+
+perf_lo_global <- Perf_comparisons_new(Idxs, Ys = Low_Vol_global, Alias = "Low_Vol")
+
+print(perf_hi_global)
+print(perf_lo_global)
+
+# dont know what I want to do with this yet
+
+
+
+g_finplot +   
+    annotate("rect", xmin=ymd(20080101), xmax=ymd(20081231), ymin=-Inf , ymax=Inf, alpha=0.2, color="blue", fill="blue")+ 
+    annotate("rect", xmin=ymd(20160101), xmax=ymd(20161231), ymin=-Inf , ymax=Inf, alpha=0.2, color="blue", fill="blue")+ 
+    annotate("rect", xmin=ymd(20170101), xmax=ymd(20171231), ymin=-Inf , ymax=Inf, alpha=0.2, color="blue", fill="blue")+ 
+    annotate("rect", xmin=ymd(20180101), xmax=ymd(20181231), ymin=-Inf , ymax=Inf, alpha=0.2, color="blue", fill="blue")+ 
+    annotate("rect", xmin=ymd(20200101), xmax=ymd(20201231), ymin=-Inf , ymax=Inf, alpha=0.2, color="blue", fill="blue")+ 
+    annotate("rect", xmin=ymd(20080101), xmax=ymd(20081231), ymin=-Inf , ymax=Inf, alpha=0.2, color="pink", fill="pink")+
+    annotate("rect", xmin=ymd(20150101), xmax=ymd(20151231), ymin=-Inf , ymax=Inf, alpha=0.2, color="pink", fill="pink")+
+    annotate("rect", xmin=ymd(20200101), xmax=ymd(20201231), ymin=-Inf , ymax=Inf, alpha=0.2, color="pink", fill="pink")+
+    annotate("rect", xmin=ymd(20210101), xmax=ymd(20211231), ymin=-Inf , ymax=Inf, alpha=0.2, color="pink", fill="pink")+
+    annotate("rect", xmin=ymd(20220101), xmax=ymd(20221231), ymin=-Inf , ymax=Inf, alpha=0.2, color="pink", fill="pink")
+```
+Now look at volatility against base volatility
+
+NBNBNB to revisit
+```{r}
+# MV Conditional Heteroskedasticity tests
+weighted_retry <- df_Portf_W %>% filter(date %in% Rebalance_Quarterly)
+all_porfolios1 <- left_join(weighted_retry, weighted_returns_porfolio, by="date")
+all_porfolios2 <- left_join(all_porfolios1,weighted_returns_rp, by="date")
+
+all_portfolio_final <- all_porfolios2 %>% rename(W=PortfolioReturn.x, MV=PortfolioReturn.y, RP=PortfolioReturn)
+xts_portfolio <- all_portfolio_final %>% tbl_xts()
+MarchTest(xts_portfolio)
+
+# The MARCH test indicates that all the MV portmanteau tests reject the null of no conditional heteroskedasticity, motivating our use of MVGARCH models.
+# Motivation for using Multivariate garch is because of the interdependcies between the exchange rate
+
+
+# I will be using the DCC Model to fit my data
+DCCPre <- dccPre(xts_portfolio, include.mean = T, p = 0)
+
+# We now have the estimates of volatility for each series. 
+# Follow my lead below in changing the output to a usable Xts series for each column in xts_rtn:
+Vol <- DCCPre$marVol
+colnames(Vol) <- colnames(xts_portfolio)
+Vol <- 
+  data.frame( cbind( date = index(xts_portfolio), Vol)) %>% # Add date column which dropped away...
+  mutate(date = as.Date(date)) %>%  dplyr::tbl_df() 
+Vol <- Vol[,-c(2,3,4)]
+# make date column a date column...
+TidyVol <- Vol %>% gather(Currency, Sigma, -date)
+ggplot(TidyVol) + geom_line(aes(x = date, y = Sigma, colour = Currency))
+```
+
+
+
+Looking at annualised return and sd of the differetn portfolios:
+
+```{r}
+# Equal weighting portfolio
+EW_ann_Return <- Return.annualized(df_Portf_W, scale = 12, geometric = TRUE)
+EW_ann_sd <- StdDev.annualized(df_Portf_W, scale = 12)
+
+# Min variance portfolio
+MV_ann_Return <- Return.annualized(weighted_returns_porfolio, scale = 12, geometric = TRUE)
+MV_ann_sd <- StdDev.annualized(weighted_returns_porfolio, scale = 12)
+# Risk Parity Portfolio
+RP_ann_Return <- Return.annualized(weighted_returns_rp, scale = 12, geometric = TRUE)
+RP_ann_sd <- StdDev.annualized(weighted_returns_rp, scale = 12)
+
+
+
+portfolio_compare<- data.frame(cbind(Fund = c("EW","MV", "RP"),
+      `Returns(Ann.)` = c(EW_ann_Return, MV_ann_Return, RP_ann_Return),
+      `S.Dev(Ann.)` = c(EW_ann_sd, MV_ann_sd, RP_ann_sd)))
+```
+
