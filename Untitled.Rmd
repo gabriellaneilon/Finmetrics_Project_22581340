@@ -410,4 +410,240 @@ rebalance_returns <- function(data, fund_name, w_cap) {
 result <- rebalance_returns(weights_minvol_new , fund_name = "Weights", w_cap = 0.25)
 
 ```
+```{r}
+Idxs <- 
+  
+  fmxdat::SA_Indexes %>% arrange(date) %>% 
+  
+  group_by(Tickers) %>% mutate(Return = Price / lag(Price)-1) %>% 
+  
+  ungroup() %>% 
+  
+  select(date, Tickers, Return) %>% filter(!is.na(Return)) %>% 
+  
+  mutate(YearMonth = format(date, "%Y%B"))
+
+# Consider only indexes with data from before 20080101, and use this as a common start date too...:
+# Can you argue why?
+
+Idx_Cons <- 
+  
+  Idxs %>% group_by(Tickers) %>% filter(date == first(date)) %>% 
+  
+  ungroup() %>% filter(date < ymd(20080101)) %>% 
+  
+  pull(Tickers) %>% unique
+
+Idxs <- 
+  
+  Idxs %>% 
+  
+  filter(Tickers %in% Idx_Cons) %>% 
+  
+  filter(date > ymd(20080101))
+
+# Winzorising:
+
+Idxs <-
+  
+  Idxs %>% group_by(Tickers) %>% 
+  
+  mutate(Top = quantile(Return, 0.99), Bot = quantile(Return, 0.01)) %>% 
+  
+  mutate(Return = ifelse(Return > Top, Top, 
+                         
+                         ifelse(Return < Bot, Bot, Return))) %>% ungroup()
+
+
+
+zar <- 
+  
+  fmxdat::PCA_EX_Spots  %>% 
+  
+  filter(date > ymd(20080101)) %>% filter(Spots == "ZAR_Spot") %>% 
+  
+  select(-Spots)
+
+
+ZARSD <- 
+  
+zar %>% 
+  
+  mutate(YearMonth = format(date, "%Y%B")) %>% 
+  
+  group_by(YearMonth) %>% summarise(SD = sd(Return)*sqrt(52)) %>% 
+  
+  # Top Decile Quantile overall (highly volatile month for ZAR:
+  mutate(TopQtile = quantile(SD, 0.8),
+         
+         BotQtile = quantile(SD, 0.2))
+
+
+
+Hi_Vol <- ZARSD %>% filter(SD > TopQtile) %>% pull(YearMonth)
+
+Low_Vol <- ZARSD %>% filter(SD < BotQtile) %>% pull(YearMonth)
+
+
+# Create generic function to compare performance:
+
+Perf_comparisons <- function(Idxs, YMs, Alias){
+  # For stepping through uncomment:
+  # YMs <- Hi_Vol
+  Unconditional_SD <- 
+    
+  Idxs %>% 
+    
+    group_by(Tickers) %>% 
+    
+    mutate(Full_SD = sd(Return) * sqrt(252)) %>% 
+    
+    filter(YearMonth %in% YMs) %>% 
+    
+    summarise(SD = sd(Return) * sqrt(252), across(.cols = starts_with("Full"), .fns = max)) %>% 
+    
+    arrange(desc(SD)) %>% mutate(Period = Alias) %>% 
+    
+    group_by(Tickers) %>% 
+    
+    mutate(Ratio = SD / Full_SD)
+    
+    Unconditional_SD
+  
+}
+
+perf_hi <- Perf_comparisons(Idxs, YMs = Hi_Vol, Alias = "High_Vol")
+
+perf_lo <- Perf_comparisons(Idxs, YMs = Low_Vol, Alias = "Low_Vol")
+```
+```{r}
+dailydata <- fmxdat::findata
+
+dailydata.subset <- 
+  
+  dailydata %>% 
+  
+  gather(Stocks, Px, -Date) %>% 
+  
+  arrange(Date) %>% 
+  
+  group_by(Stocks) %>% 
+  
+  mutate(Returns = Px/lag(Px)-1) %>% ungroup() %>% filter(Date > first(Date)) %>% 
+  
+  select(-Px)
+
+# Let's assume the portfolio rebalances each January and July.
+
+# First, let's save the exact rebalance dates and save the random weight and date information to be used later:
+# Below is a very nice way to save months and years: let's rebalance at month 1 and 7... 
+
+RebMonths <- c(1,7) # Make a parameter that can easily be changed later.
+
+RandomWeights <- 
+  
+dailydata.subset %>% 
+  
+    mutate(Months = as.numeric(format(Date, format = "%m")), 
+           
+           YearMonths = as.numeric(format(Date, format = "%Y%m"))) %>% 
+  
+  filter(Months %in% RebMonths) %>% 
+  
+  group_by(YearMonths, Months, Stocks) %>% filter(Date == last(Date)) %>% ungroup()
+
+N_Stocks <- length(unique(RandomWeights$Stocks))
+
+Max_Exposure <-(1/N_Stocks)*1.20
+
+# Minimum exposure is, say, 2%:
+Min_Exposure <- 0.02
+
+# Now to append the weight vector, let's use the random.bounded function from rportfolios.
+
+RandomWeights_adj <-  
+  bind_cols(RandomWeights %>% arrange(Date),
+            RandomWeights %>% group_by(Date) %>% 
+              
+  do( Randweights = random.bounded(n = nrow(.), 
+                 x.t = 1, # Full investment... 
+                 x.l = rep( Min_Exposure, nrow(.)), # Lower Bound 
+                 x.u = rep( Max_Exposure, nrow(.)), 
+                 max.iter = 1000) ) %>% ungroup() %>% unnest(Randweights) %>% select(-Date)
+  )
+
+# Sanity check: Create a stop function if it doesn't hold...
+if( RandomWeights_adj %>% group_by(Date) %>% 
+    
+    summarise(Fully_Invested = sum(Randweights)) %>% filter(Fully_Invested > 1.000001 | Fully_Invested < 0.9999999 ) %>% nrow() > 0 ) stop("\n=============\n Ooops! \nWeights do not sum to 1... Please check!\n===========\n")
+
+# Create equal weight portfolios as well:
+RandomWeights_adj <- 
+  
+RandomWeights_adj %>% 
+  
+  group_by(Date) %>% 
+  
+  mutate(EqualWeights = 1/n()) %>% 
+  
+  ungroup() %>% select(-Months, -YearMonths)
+
+Fund_Size_at_Start <- 1000
+Rand_weights <- 
+RandomWeights_adj %>% select(Date, Stocks, Randweights) %>% spread(Stocks, Randweights) %>% tbl_xts()
+
+EW_weights <- 
+
+
+df_Returns <- 
+dailydata.subset %>% spread(Stocks, Returns)
+
+df_Returns[is.na(df_Returns)] <- 0
+xts_df_Returns <- df_Returns %>% tbl_xts()
+
+    Rand_RetPort <- 
+      rmsfuns::Safe_Return.portfolio(xts_df_Returns, 
+                                     
+                       weights = Rand_weights, lag_weights = TRUE,
+                       
+                       verbose = TRUE, contribution = TRUE, 
+                       
+                       value = Fund_Size_at_Start, geometric = TRUE)
+    
+    
+Rand_Contribution <- 
+      Rand_RetPort$"contribution" %>% xts_tbl() 
+
+Rand_BPWeight <- 
+  
+      Rand_RetPort$"BOP.Weight" %>% xts_tbl() 
+
+Rand_BPValue <- 
+  
+      Rand_RetPort$"BOP.Value" %>% xts_tbl()  
+
+names(Rand_Contribution) <- c("date", names(Rand_RetPort$"contribution"))
+    names(Rand_BPWeight) <- c("date", names(Rand_RetPort$"BOP.Weight"))
+    names(Rand_BPValue) <- c("date", names(Rand_RetPort$"BOP.Value"))
+  
+    
+    df_port_return_Random <- 
+      left_join(dailydata.subset %>% rename("date" = Date),
+                Rand_BPWeight %>% gather(Stocks, weight, -date),
+                by = c("date", "Stocks") ) %>% 
+      
+      left_join(.,
+                Rand_BPValue %>% gather(Stocks, value_held, -date),
+                by = c("date", "Stocks") ) %>% 
+      
+      left_join(.,
+                Rand_Contribution %>% gather(Stocks, Contribution, -date),
+                by = c("date", "Stocks"))
+    
+    df_Portf_Random <- 
+    df_port_return_Random %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*weight, na.rm =TRUE)) %>% 
+      filter(PortfolioReturn != 0)
+    
+   
+```
 

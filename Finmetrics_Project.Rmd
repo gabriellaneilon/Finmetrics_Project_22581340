@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "Optimizing Portfolio Strategies: A Comparative Study of Mean-Variance, Minimum-Variance, and Risk Parity Portfolios"
+title: "Optimizing Portfolio Strategies: A Comparative Study of Mean-Variance, Minimum-Variance, Equally Weighted, and Risk Parity Portfolios"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -92,7 +92,7 @@ output:
     fig_width: 6 # Adjust default figure sizes. This can also be done in the chunks of the text.
     fig_height: 6
 abstract: |
-    This study conducts a comprehensive examination of portfolio optimization strategies, focusing on Mean-Variance Optimization (MVO), Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios. Acknowledging the foundational principles of Modern Portfolio Theory (MPT), the analysis critiques MVO's concentration issues and MVP's struggles with uneven weight distributions. Subsequently, the study explores the Risk Parity Portfolio's potential in mitigating asset concentration and optimizing risk diversification. The paper utilizes various indices to construct portfolios, employing a range of optimization techniques and considering global assumptions. The results reveal nuanced insights into each portfolio's performance, risk-adjusted returns, and weight allocations across asset classes. This comparative study highlights the strengths and weaknesses of each strategy, shedding light on their suitability in diverse market conditions.
+    This paper critically examines the effectiveness of Mean-Variance Optimization (MVO), Minimum-Variance Portfolio (MVP), Equally Weighted and Risk Parity portfolio strategies in the the long run and during volatile periods. While MVO aims to maximize expected returns while minimizing risks, it often results in concentrated portfolios vulnerable to abrupt changes. MVP, focusing on minimizing overall portfolio variance without explicit return predictions, faces issues of concentration on low-volatility assets. The study introduces Risk Parity portfolios as an alternative strategy, emphasizing risk budgeting to achieve optimal risk diversification. The study concludes that all three portfolio strategies consistently outperform the S&P 500 index, demonstrating their potential for delivering superior risk-adjusted returns across various market conditions. Notably, Risk Parity portfolios exhibit balanced risk contributions, making them resilient in downturns, and the MVP strategy stands out with promising risk-adjusted returns. The research provides valuable insights for investors seeking optimal portfolio strategies in dynamic markets.
 ---
 
 <!-- First: Set your default preferences for chunk options: -->
@@ -252,9 +252,9 @@ Nevertheless, the Risk Parity portfolio is not devoid of shortcomings.
 <!-- ::: {.column data-latex="{0.2\textwidth}"} -->
 <!-- \scriptsize -->
 
-#  Data and Methodology \label{-} 
+#  Portfolio construction
 
-This paper aligns closely with @maillard2010properties by constructing a G*lobal diversified portfolio* and utilizes monthly data provided by @katzke2023portfoliocourse, focusing on various indices including the Morgan Stanley Capital International All Country World Index ("MSCI ACWI"), the Gold Spot rate ("Gold Spot $/Oz"), the Bloomberg Global Aggregate Bond Index ("GlobalAgg Unhedged USD"), the Capped SWIX All Share Index ("J433"), and the FTSE/JSE All Bond Index ("ALBI"). The analysis aims to compare various portfolio optimization strategies. Utilizing a standard shrinkage technique, covariance matrices are estimated for all strategies [@chaves2011risk].
+This paper aligns closely with @maillard2010properties by constructing a *Global diversified portfolio* and utilizes monthly data from 2002-02-28 to 2023-08-31 provided by @katzke2023portfoliocourse, focusing on various indices including the Morgan Stanley Capital International All Country World Index ("MSCI ACWI"), the Gold Spot rate ("Gold Spot $/Oz"), the Bloomberg Global Aggregate Bond Index ("GlobalAgg Unhedged USD"), the Capped SWIX All Share Index ("J433"), and the FTSE/JSE All Bond Index ("ALBI"). The analysis aims to compare various portfolio optimization strategies. Utilizing a standard shrinkage technique, covariance matrices are estimated for all strategies [@chaves2011risk].
 
 The study adopts several global assumptions: (1) full investment  ($\boldsymbol{\omega^1} 1=1$), (2) a long-only strategy($\boldsymbol{\omega} \ge 0$). All portfolios undergo quarterly rebalancing, with an upper limit of 25% and a lower bound of 1% applied to all asset classes. Furthermore, Bonds are capped at 25%, Equities at 60%, and Gold at 10% exposure.
 
@@ -341,90 +341,91 @@ s.t.\ \boldsymbol{Cw}=\boldsymbol{c}, \boldsymbol{Dw}\le\boldsymbol{d}
 
 # Results \label{-}
 
-In comparison to other portfolios, the $\frac{1}{N}$ portfolio is outperformed by the MVP and MVO in terms of the Sharpe Ratio. On the other hand, the Risk Parity Portfolio, along with the MVO, demonstrates superior annualized returns, consistent with the findings of @maillard2010properties. Notably, the Risk Parity Portfolio demonstrates extensive weight allocations across most asset classes. However, a noteworthy observation emerges in the allocation pattern regarding the 'ALBI' asset class. Despite its relatively lower risk contribution, this class holds a significant weight in the portfolio, showcasing the intuitive nature of the Risk Parity strategy. In contrast, the MVO aggressively targets equities and gold but overlooks 'ALBI.'
+## Preliminary analysis
+This section examines the risk contribution, weight allocation, and cumulative returns of each portfolio. While offering insights into expected portfolio behavior, it is essential to recognize that this analysis alone may not comprehensively assess portfolio performance. A more robust and detailed analysis follows this section.
 
-Nevertheless, the considerable weight allocation towards equities in the Risk Parity Portfolio raises questions. This anomaly might be attributed to the chosen 'asset' classes, primarily composed of indexes and hence exhibiting more stability. However, in a 'real-life' portfolio comprising individual assets, this allocation might differ. This aligns with @@chaves2011risk's insight, indicating Risk Parity's sensitivity to asset selection, which remains more art than science.
+Figure \ref{Figure1} illustrates the expected weight allocation of the Risk Parity portfolio, aligning with its relative risk contributions. In contrast, the Minimum Variance Portfolio (MVP) portfolio exhibits an inverse relationship, with a greater risk contribution corresponding to a smaller weight allocation. A similar trend is observed in the MVO portfolio, with variations. The Risk Parity Portfolio, notable for its diverse allocation, particularly allocates a significant weight to the 'ALBI' asset class, showcasing the intuitive nature of the Risk Parity strategy. Conversely, the MVP portfolio, while aggressively targeting equities and gold, overlooks 'J433' and aligns with the traditional weight distribution of minimum variance, concentrating heavily on low-risk asset classes such as bonds [@lohre2014diversifying].
 
-Across portfolio management, Mean-Variance Optimization (MVO) and Risk Parity strategies emerge as prominent contenders in cumulative returns and annualized performance. However, when assessing portfolios based on risk-adjusted performance, the Minimum-Variance Portfolio (MVP) and Mean-Variance strategy take the lead, particularly excelling in the Sharpe ratio. This ratio, which balances return against risk, places these portfolios at the forefront in delivering optimal returns considering inherent investment risks, aligning with @chaves2011risk's conclusions.
+Figure \ref{Figure1} also provides insights into the investment risk profiles of different portfolios, revealing key exposures for each asset class. Global bonds face currency risk, while local equities are subject to market risk influenced by economic conditions, geopolitical events, and investor sentiment. Global equities are exposed to global market movements, economic conditions, currency risk, and political and regulatory risk. The Risk Parity portfolio demonstrates the highest exposure to both local and global equities, indicating sensitivity to global market dynamics. In contrast, the MVP Portfolio has a greater emphasis on global and local bonds.
 
-Although the Risk Parity Portfolio boasts substantial annualized returns, it lags in the Sharpe ratio department.
+A higher weight allocation to bonds in a portfolio offers several benefits. Bonds are generally less volatile than equities, contributing to a more stable portfolio value, which is suitable for risk-averse investors. Bonds also provide regular interest payments, creating a predictable income stream. Additionally, bonds are considered safer in terms of capital preservation, offering a hedge during equity market downturns. The lower correlation between bonds and equities contributes to diversification, reducing overall portfolio risk.
 
-Upon analyzing risk distribution across principal portfolios, the $\frac{1}{N}$ strategy predominantly budgets risk toward equities, implying a high equity risk. Furthermore, it aligns with the typical weight distribution of minimum variance, heavily concentrated in low-risk asset classes like bonds, as found in [@lohre2014diversifying].
+On the other hand, the Mean-Variance Optimization (MVO) exhibits a higher exposure to the gold spot rate and local stocks. This suggests that gold serves as a potential protective buffer, employed for hedging against inflation risk and mitigating market and economic stress.
 
+Figure \ref{Figure2} compares cumulative returns across portfolio strategies, highlighting MVO and Risk Parity as prominent contenders. 
 
 ```{r}
 #create portfolio rebalancing quarterly
 
 
-DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% spread(Name,Returns)
+DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name) #data to be used
 
-DT <- DT %>% tbl_xts()
-
-weights <-  c(0.2,0.2,0.2,0.2,0.2) 
-Portfolio_EW <-  Return.portfolio(R = DT, weights = weights, rebalance_on = "quarter", verbose=T)
-
-DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
-# Clean and save portfolio returns and weights:
-W_Contribution <- 
-      Portfolio_EW$contribution %>% xts_tbl() 
-
-W_BPWeight <- 
-      Portfolio_EW$BOP.Weight %>% xts_tbl()  
-
-W_BPValue <- 
-      Portfolio_EW$BOP.Value %>% xts_tbl()
-
+weights <- plotdf %>%  group_by(date) %>% 
   
-    names(W_Contribution) <- c("date", names(Portfolio_EW$contribution))
-    names(W_BPWeight) <- c("date", names(Portfolio_EW$BOP.Weight))
-    names(W_BPValue) <- c("date", names(Portfolio_EW$BOP.Value))
-
-W_BPWeight <- W_BPWeight %>% gather(Name, Weight, -date)
-W_BPValue<- W_BPValue %>% gather(Name, value_held, -date)
-W_Contribution <- W_Contribution %>% gather(Name, Contribution, -date)
-
-names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
-  # Names to be replaced
-new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
-
-# Replace specific column names
-W_BPWeight <- W_BPWeight %>%
-  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
-
-W_BPValue <-  W_BPValue %>%
-  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
-
-W_Contribution <- W_Contribution %>%
-  mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+  mutate(Weights = 1/n())
 
 
-EW_portfolio_and_weight <- 
-      left_join(DATA,
-                W_BPWeight,
-                by = c("date", "Name") ) %>% 
-      
-      left_join(.,
-                W_BPValue,
-                by = c("date", "Name") ) %>% 
-      
-      left_join(.,
-                W_Contribution,
-                by = c("date", "Name"))
+weights_ew_new <-weights%>%  mutate(Weights=as.numeric(as.character(Weights))) %>% filter(format(date, "%m-%d") %in% c("03-31", "06-30", "09-30", "12-31")) 
+ 
+weights_ew_final <- weights_ew_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
 
-```
+Portfolio_EW <-  Safe_Return.portfolio(R = DT, weights = weights_ew_final, rebalance_on = "quarter", verbose=T)
 
-```{r}
+EW_portfolio_return_weighted <- 
+   Portfolio_EW$returns %>% xts_tbl()%>% rename("portfolio.returns_EW"=portfolio.returns)
+
+# # Below using BOP gives same results as above if you use Portfolio_EW$returns
+# 
+# # Clean and save portfolio returns and weights:
+# W_Contribution <- 
+#       Portfolio_EW$contribution %>% xts_tbl() 
+# 
+# W_BPWeight <- 
+#       Portfolio_EW$BOP.Weight %>% xts_tbl()  
+# 
+# W_BPValue <- 
+#       Portfolio_EW$BOP.Value %>% xts_tbl()
+# 
+#   
+#     names(W_Contribution) <- c("date", names(Portfolio_EW$contribution))
+#     names(W_BPWeight) <- c("date", names(Portfolio_EW$BOP.Weight))
+#     names(W_BPValue) <- c("date", names(Portfolio_EW$BOP.Value))
+# 
+# W_BPWeight <- W_BPWeight %>% gather(Name, Weight, -date)
+# W_BPValue<- W_BPValue %>% gather(Name, value_held, -date)
+# W_Contribution <- W_Contribution %>% gather(Name, Contribution, -date)
+# 
+# names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+#   # Names to be replaced
+# new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+# 
+# # Replace specific column names
+# W_BPWeight <- W_BPWeight %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# W_BPValue <-  W_BPValue %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# W_Contribution <- W_Contribution %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
+# EW_portfolio_and_weight <- 
+#       left_join(DATA,
+#                 W_BPWeight,
+#                 by = c("date", "Name") )
+
+
+
 # Plotting the cumulative returns of porfolio construction according to the "Naive" portfolio weigths
 # Calculate Portfolio Returns:
-EW_portfolio_return_weighted <- 
-    EW_portfolio_and_weight %>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*Weight, na.rm =TRUE)) %>% 
-      filter(PortfolioReturn != 0) # this gives the same as when you take the porfolio.return
+
 
 
 Cum_EW <- 
-EW_portfolio_return_weighted%>% 
-    mutate(cumreturn_EW = (cumprod(1 + PortfolioReturn))) %>% 
-    mutate(cumreturn_EW = cumreturn_EW / first(cumreturn_EW)) %>% select(-PortfolioReturn)
+EW_portfolio_return_weighted %>%  
+    mutate(cumreturn_EW = (cumprod(1 + portfolio.returns_EW ))) %>% 
+    mutate(cumreturn_EW = cumreturn_EW / first(cumreturn_EW)) %>% select(-portfolio.returns_EW)
 
 
 ```
@@ -548,7 +549,9 @@ Type_erc = "erc"
                                UB = rep(UB, ncol(Sigma)),
              bond_credit_limit=rep(bond_credit_limit,ncol(Sigma)),
                 commodity_limit=rep(commodity_limit, ncol(Sigma)),
-                equities_limit=rep(equities_limit,ncol(Sigma))))  
+                equities_limit=rep(equities_limit,ncol(Sigma)))) 
+      
+
 ```
 
 ```{r}
@@ -680,23 +683,64 @@ weighted_minvol <- return_mat %>% gather(Name,Returns,-date) %>%
 
 weights_minvol_new <- weighted_minvol[,c(1,2,4)]
 
-weights_minvol_new <-weights_minvol_new %>%  mutate(Weights=as.numeric(as.character(Weights)))
+weights_minvol_new <-weights_minvol_new %>%  mutate(Weights=as.numeric(as.character(Weights))) %>% filter(format(date, "%m-%d") %in% c("03-31", "06-30", "09-30", "12-31")) 
  
 weights_minvol_final <- weights_minvol_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
 
-DT <-  plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31") %>% tbl_xts(., cols_to_xts = Returns, spread_by = Name) #data to be used for all
 
-Portfolio_MinVol <-  Safe_Return.portfolio(R = DT, weights = weights_minvol_final, rebalance_on = "quarter", verbose=T)
+
+Portfolio_MinVol <-  Safe_Return.portfolio(R = DT, weights = weights_minvol_final,  verbose=T)
 
 
 Weighted_Porfolio_Returns_MinVol <- 
-      Portfolio_MinVol$returns %>% xts_tbl() #get back to this
+      Portfolio_MinVol$returns %>% xts_tbl() %>% rename("portfolio.returns_MinVol"=portfolio.returns)#This gives same returns as below process, ut I had to make sure it correlated
+
+# W_BPWeight <- 
+#       Portfolio_MinVol$BOP.Weight %>% xts_tbl()  
+# 
+# 
+#   
+# 
+#     names(W_BPWeight) <- c("date", names(Portfolio_MinVol$EOP.Weight))
+# 
+# 
+# W_BPWeight <- W_BPWeight %>% gather(Name, Weight, -date)
+# 
+# 
+# 
+# names_to_replace <- c("GlobalAgg.Unhedged.USD","Gold.Spot...Oz..GOLDS.COMDTY.","MSCI.ACWI","SP.500")
+#   # Names to be replaced
+# new_names <- c("GlobalAgg Unhedged USD", "Gold Spot $/Oz (GOLDS COMDTY)", "MSCI ACWI", "SP 500")               # New names
+# 
+# # Replace specific column names
+# W_BPWeight <- W_BPWeight %>%
+#   mutate(Name = ifelse(Name %in% names_to_replace, new_names[match(Name, names_to_replace)], Name))
+# 
+# 
+# 
+# EW_portfolio_and_weight <- 
+#       left_join(DATA,
+#                 W_BPWeight,
+#                 by = c("date", "Name") )
+# 
+#  EW_portfolio_and_weight%>% group_by(date) %>% summarise(PortfolioReturn = sum(Returns*Weight, na.rm =TRUE)) %>% 
+#       filter(PortfolioReturn != 0)
+
+
+
+
+
+
+##
 
 Cum_MinVol <-
 Weighted_Porfolio_Returns_MinVol%>%
-    mutate(cumreturn_minvol = (cumprod(1 + portfolio.returns))) %>%
-    mutate(cumreturn_minvol= cumreturn_minvol/ first(cumreturn_minvol)) %>% select(-portfolio.returns)
+    mutate(cumreturn_minvol = (cumprod(1 + portfolio.returns_MinVol))) %>%
+    mutate(cumreturn_minvol= cumreturn_minvol/ first(cumreturn_minvol)) %>% select(-portfolio.returns_MinVol)
+```
 
+
+```{r}
 ##
 # Now for MV
 weighted_mv <- return_mat %>% gather(Name,Returns,-date) %>% 
@@ -704,8 +748,8 @@ weighted_mv <- return_mat %>% gather(Name,Returns,-date) %>%
   mutate(Weights = ifelse(row_number() <= length(All_Result$mv), All_Result$mv[row_number()], NA))
 
 weights_mv_new <- weighted_mv[,c(1,2,4)]
+weights_mv_new <-weights_mv_new %>%  mutate(Weights=as.numeric(as.character(Weights))) %>% filter(format(date, "%m-%d") %in% c("03-31", "06-30", "09-30", "12-31")) 
 
-weights_mv_new <-weights_mv_new %>%  mutate(Weights=as.numeric(as.character(Weights)))
  
 weights_mv_final <- weights_mv_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
 
@@ -714,16 +758,19 @@ Portfolio_MV <-  Safe_Return.portfolio(R = DT, weights = weights_mv_final, rebal
 
 
 Weighted_Porfolio_Returns_MV <- 
-      Portfolio_MV$returns %>% xts_tbl()
+      Portfolio_MV$returns %>% xts_tbl()%>% rename("portfolio.returns_MV"=portfolio.returns)
 
 Cum_MV <-
 Weighted_Porfolio_Returns_MV%>%
-    mutate(cumreturn_mv = (cumprod(1 + portfolio.returns))) %>%
-    mutate(cumreturn_mv= cumreturn_mv/ first(cumreturn_mv)) %>% select(-portfolio.returns)
+    mutate(cumreturn_mv = (cumprod(1 + portfolio.returns_MV))) %>%
+    mutate(cumreturn_mv= cumreturn_mv/ first(cumreturn_mv)) %>% select(-portfolio.returns_MV)
+
+
 
 
 
 ```
+
 
 
 ```{r}
@@ -983,6 +1030,8 @@ t <- return_mat %>% gather(Name,Return,-date) %>%
   mutate(Weights = ifelse(row_number() <= length(weights_rp), weights_rp[row_number()], NA))
 
 weights_rp_new <- t[,c(1,2,4)]
+
+weights_rp_new <-weights_rp_new %>%  mutate(Weights=as.numeric(as.character(Weights))) %>% filter(format(date, "%m-%d") %in% c("03-31", "06-30", "09-30", "12-31")) 
  
 weights_rp_final <- weights_rp_new %>% tbl_xts(., cols_to_xts = Weights, spread_by = Name)
 
@@ -993,15 +1042,15 @@ Portfolio_RP <-  Safe_Return.portfolio(R = DT, weights = weights_rp_final, rebal
 DATA <- plotdf%>% filter (date>="2002-02-28" & date<="2023-08-31")
 
 RP_Porfolio_Returns <- 
-      Portfolio_RP$returns %>% xts_tbl() #get back to this
+      Portfolio_RP$returns %>% xts_tbl() %>% rename("portfolio.returns_RP"=portfolio.returns) 
 
 
 #####################
 
 Cum_RP <-
 RP_Porfolio_Returns%>%
-    mutate(cumreturn_rp = (cumprod(1 + portfolio.returns))) %>%
-    mutate(cumreturn_rp= cumreturn_rp / first(cumreturn_rp)) %>% select(-portfolio.returns)
+    mutate(cumreturn_rp = (cumprod(1 + portfolio.returns_RP))) %>%
+    mutate(cumreturn_rp= cumreturn_rp / first(cumreturn_rp)) %>% select(-portfolio.returns_RP)
 # 
 # 
 # MV_Porfolio_Returns <- 
@@ -1039,17 +1088,19 @@ RP_Porfolio_Returns%>%
 
 ```{r Figure1,  warning =  FALSE, fig.align = 'center', fig.cap = "Relative risk contribution and Weights allocation of different portfolios \\label{Figure1}", fig.ext = 'png', fig.height = 4, fig.width = 7}
 #plotting weights risk concentration etc
-weights_EW <-  c("GlobalAgg Unhedged USD"=0.2, "Gold Spot $/Oz (GOLDS COMDTY)"=0.2, "MSCI ACWI"=0.2, "ALBI"=0.2, "J433"=0.2) 
-weights_minvol_plot <- c("GlobalAgg Unhedged USD"=0.25, "Gold Spot $/Oz (GOLDS COMDTY)"=0.1914959944937, "MSCI ACWI"=0.139207415247347, "ALBI"=0.25, "J433"=0.169296590258953) 
-weights_mv_plot <- c("GlobalAgg Unhedged USD"=0.01, "Gold Spot $/Oz (GOLDS COMDTY)"=0.25, "MSCI ACWI"=	0.240000000000001, "ALBI"=	0.249999999999998, "J433"=0.25) 
+weights_EW <-  c("US Bond"=0.2, "Gold"=0.2, "MSCI ACWI"=0.2, "ALBI"=0.2, "J433"=0.2) 
+weights_minvol_plot <- c("US Bond"=0.25, "Gold"=0.1914959944937, "MSCI ACWI"=0.139207415247347, "ALBI"=0.25, "J433"=0.169296590258953) 
+weights_mv_plot <- c("US Bond"=0.01, "Gold"=0.25, "MSCI ACWI"=	0.240000000000001, "ALBI"=	0.249999999999998, "J433"=0.25) 
+weight_risk_parity_plot <- c("US Bond"=3.574634e-08, "Gold"=1.500000e-01, "MSCI ACWI"=	2.941502e-01, "ALBI"=	 2.500000e-01, "J433"=3.058498e-01) 
 # plot
-w_all <- cbind("Risk Parity"  = rpp$w,
+w_all <- cbind("Risk Parity"  = weight_risk_parity_plot,
                "MVP" =weights_minvol_plot ,
                "MVO"=weights_mv_plot,
              "EW Porfolio"=weights_EW)
 
 
 barplotPortfolioRisk(w_all, Sigma)
+
 
 ```
 
@@ -1084,23 +1135,101 @@ g_finplot <- finplot(plot1, x.date.dist = "1 year", x.date.type = "%Y", x.vert =
 
 g_finplot
 ```
+## Further Analysis
+A drawdown signifies the extent to which the portfolio declines from its peak value before subsequently recovering. The portfolios were assessed in relation to the S&P 500. While the S&P 500 may not be the ideal benchmark, given that other portfolios are primarily constructed from different market indices, its broad market representation, market-capitalization weighting, diverse industry coverage, liquidity, reputation, and global influence make it the most suitable benchmark for this analysis.
 
+In Figure \ref{Figure3}, several crucial metrics stand out when dissecting this graph. These metrics include the depth, duration, frequency, and recovery periods of drawdowns observed in various portfolios relative S&P 500 index. Notably, the S&P 500 index exhibits the most substantial depth in drawdowns, coupled with the lengthiest recovery periods. This implies that the index not only experiences the most significant loss in value following its peaks but also takes an extended period to recover from these downturns. In contrast, the MVP portfolio displays lower frequency, depth, and duration of drawdowns, indicating comparatively smaller losses in portfolio value and consequently lower risk compared to other portfolios.
+
+The Risk Parity portfolio follows a similar trend to the MVP, albeit with greater depth in drawdowns, though not as pronounced as observed in the S&P 500. This suggests that while the Risk Parity portfolio experiences more significant declines in value during drawdowns, it still maintains a risk profile that is less pronounced than that of the S&P 500. The $\frac{1}{N}$ exhibits the last amoutn of depth in drawdowns, followed by the MVo portfolio. The $\frac{1}{N}$ portfolio demonstrates the least depth in drawdowns, with the MVO portfolio following closely.
+```{r Figure3,  warning =  FALSE, fig.align = 'center', fig.cap = "Drawdowns \\label{Figure3}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+# Doing tables
+merged1 <- merge(RP_Porfolio_Returns, Weighted_Porfolio_Returns_MinVol, by="date")
+merged2 <- merge(merged1, Weighted_Porfolio_Returns_MV, by="date")
+merged3 <- merge(merged2, EW_portfolio_return_weighted, by="date")
+
+all_portfolios <- merged3 %>% rename("Risk Parity"=portfolio.returns_RP, "MVP"=portfolio.returns_MinVol, "MVO"=portfolio.returns_MV, "EW"=portfolio.returns_EW)
+combined_data <- left_join(d1, RSA_indexes, by="date")
+
+risk_free_rate<- combined_data %>% select("date","US 3 Month Libor Rate" ) %>% filter (date>="2016-01-31" & date<="2023-08-31")
+sp500 <- combined_data %>% select(date,"SP 500") %>% filter (date>="2002-02-28" & date<="2023-08-31")
+spxts <- 
+      sp500 %>% 
+      tbl_xts() 
+portfolio_table <- all_portfolios %>% gather(Portfolio, Return,-date) 
+portfolios_sp <- merge(sp500, all_portfolios , by="date") 
+
+chart.Drawdown(portfolios_sp,main = "Drawdowns relative to S&P 500", 
+               colorset = (2:7), legend.loc = "bottomleft")
+
+
+
+
+```
+Furthermore, I conducted an analysis of the annualized risk-return performance of each portfolio relative to the S&P 500 over five distinct periods. The initial period encompasses the entire dataset, while the second period spans from October 2008, marked by a significant drop in the S&P 500 after reaching its peak. The third period, December 2018, witnessed another downturn attributed to factors such as Donald Trump's trade war with China, global economic slowdown, and concerns about the Federal Reserve's rapid interest rate hikes. Additionally, the year 2020, marked by the onset of the COVID-19 pandemic, and January 2022, following a peak in the S&P 500, represent subsequent periods characterized by geopolitical tensions, the Ukraine war, extensive COVID-related lockdowns in China, interest rate hikes by the US Federal Reserve, and overall economic uncertainty in the US post-pandemic. These chosen periods were deliberately selected since it encapsulated volatile circumstances. 
+
+
+
+```{r Figure4,  warning =  FALSE, fig.align = 'center', fig.cap = "Annualized Risk-Return performance of portfolios relative to SP 500 over the entire sample period. \\label{Figure4}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+
+portfolios_sp_xts <- merge(sp500, all_portfolios , by="date") %>% tbl_xts()
+
+chart.RiskReturnScatter(R=portfolios_sp_xts[,c("SP 500", "Risk Parity", "MVP", "MVO", "EW")], colorset=rich8equal, legend.loc = "bottomright", main = "Relative Performance to S&P 500 overall")
+```
+Figure \ref{Figure4}, the Mean-Variance Optimization (MVO) portfolio emerges with the highest potential return accompanied by moderate risk. Conversely, the Minimum Variance Portfolio (MVP) strategy exhibits the lowest risk but correspondingly the lowest return. Both Equal Weight (EW) and Risk Parity strategies offer a balanced combination of moderate returns and risks, outperforming the S&P 500 to some extent.
+
+Figures \ref{Figure5} through \ref{Figure7} illustrate that the MVO portfolio achieves the highest return but also carries the highest risk relative to the S&P 500 index. Meanwhile, the MVP portfolio features the lowest risk but at the expense of the lowest return. The Risk Parity portfolio showcases a moderate return with higher risk than the MVO portfolio.
+```{r Figure5,  warning =  FALSE, fig.align = 'center', fig.cap = "Annualized Risk-return performance of portfolios relative to SP 500 since October 2008 \\label{Figure5}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+chart.RiskReturnScatter(R=portfolios_sp_xts['2008-10-01/'][,c("SP 500", "Risk Parity", "MVP", "MVO", "EW")], colorset=rich8equal, legend.loc = "bottomleft", main = "Relative Performance to S&P 500 (2008-10-01)")
+
+
+```
+
+```{r Figure6,  warning =  FALSE, fig.align = 'center', fig.cap = "Annualized Risk-return performance of portfolios relative to SP 500 since December 2018 \\label{Figure6}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+
+chart.RiskReturnScatter(R=portfolios_sp_xts['2018-12-30/'][,c("SP 500", "Risk Parity", "MVP", "MVO", "EW")], colorset=rich8equal, legend.loc = "bottomright", main = "Relative Performance to S&P 500 (2018-12-31)")
+```
+
+```{r Figure7,  warning =  FALSE, fig.align = 'center', fig.cap = "Annualized Risk-return performance of portfolios relative to SP 500 since March 2020 \\label{Figure7}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+chart.RiskReturnScatter(R=portfolios_sp_xts['2020-03-01/'][,c("SP 500", "Risk Parity", "MVP", "MVO", "EW")], colorset=rich8equal, legend.loc = "bottomleft", main = "Relative Performance to S&P 500 (2020-03-01)")
+```
+Examining the portfolios' performance relative to the S&P 500 during a short-term volatile period in Figure \ref{Figure8}, suggests that the portfolios outperform the S&P index. Notably, the MVO portfolio exhibits the highest annualized return with risk levels comparable to those of the $\frac{1}{N}$ and Risk Parity portfolios, albeit with the latter two experiencing lower returns. In contrast, the MVP portfolio performs less favorably among the portfolios.
+ 
+ 
+During a short-term volatile period depicted in Figure \ref{Figure8}, all portfolios exhibit outperformance compared to the S&P 500. Particularly noteworthy is the MVO portfolio, which not only delivers the highest annualized return but also maintains risk levels similar to the $\frac{1}{N}$ and Risk Parity portfolios, albeit with the latter two experiencing lower returns. In contrast, the MVP portfolio lags behind in performance among the portfolios considered.
+```{r Figure8,  warning =  FALSE, fig.align = 'center', fig.cap = "Annualized Risk-return performance of portfolios relative to SP 500 since January 2022 \\label{Figure8}", fig.ext = 'png', fig.height = 4, fig.width = 6}
+chart.RiskReturnScatter(R=portfolios_sp_xts['2022-01-01/'][,c("SP 500", "Risk Parity", "MVP", "MVO", "EW")], colorset=rich8equal, legend.loc = "bottomleft", main = "Relative Performance to S&P 500 (2022-01-01)")
+
+```
+
+## Index Statistics
+
+This section comprehensively explores portfolio performance through an in-depth analysis of various metrics, including returns, volatility, expected shortfall, average drawdown, and performance during market upswings and downswings. Notably, the assessment excludes the examination of beta for the portfolios. The rationale for this omission lies in the anticipated and confirmed beta values being less than one, indicative of lower volatility compared to the benchmark due to better diversification. Despite the exclusion of beta, other statistical measures are deemed sufficient for providing a comprehensive overview of the diverse portfolio performances.
 
 ```{r LongTable, results = 'asis'}
 
-# Doing tables
 
-combined_data <- left_join(d1, RSA_indexes, by="date")
+# Calculating Adjusted Sharpe ratio for each portfolio
 
-risk_free_rate<- combined_data %>% select("US Inflation Linkers", "date") %>% filter (date>="2002-02-28" & date<="2023-08-31")
-
-# Calculating Sharpe ratio for each portfolio
+portfolio_table <- all_portfolios %>% gather(Portfolio, Return,-date) 
 
 
-SR_EW <- round(SharpeRatio.annualized(R=EW_portfolio_return_weighted, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
-SR_MinVol <- round(SharpeRatio.annualized(R=Weighted_Porfolio_Returns_MinVol, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
-SR_RP <- round(SharpeRatio.annualized(R=RP_Porfolio_Returns, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
-SR_MV <- round(SharpeRatio.annualized(R=Weighted_Porfolio_Returns_MV, Rf = risk_free_rate, scale = 12, geometric=TRUE),2)
+
+
+# function for table
+portfolios_xts <- portfolio_table %>%  tbl_xts(cols_to_xts = Return, spread_by = Portfolio, Colnames_Exact = T)
+spxts <- 
+      sp500 %>% filter(date>="2002-03-31") %>% 
+      tbl_xts(Colnames_Exact = T) 
+
+Adj_SR_RP <- PerformanceAnalytics::AdjustedSharpeRatio(RP_Porfolio_Returns %>% tbl_xts(), risk_free_rate) %>% round(.,3)
+Adj_SR_MV <- PerformanceAnalytics::AdjustedSharpeRatio(Weighted_Porfolio_Returns_MV %>% tbl_xts(), risk_free_rate) %>% round(.,3)
+Adj_SR_EW <- PerformanceAnalytics::AdjustedSharpeRatio(EW_portfolio_return_weighted %>% tbl_xts(), risk_free_rate) %>% round(.,3)
+Adj_SR_MinVol <- PerformanceAnalytics::AdjustedSharpeRatio(Weighted_Porfolio_Returns_MinVol %>% tbl_xts(), risk_free_rate) %>% round(.,3)
+
+Adj_SR_SP500 <- PerformanceAnalytics::AdjustedSharpeRatio(spxts, risk_free_rate) %>% round(.,3)
+
+Sharpe_data <- data.frame(cbind(Portfolio = c("Info","S&P 500", "Risk Parity","MVP","MVO", "EW"),
+      `Adj. Sharpe Ratio` = c("Adj. Sharpe Ratio",Adj_SR_SP500,Adj_SR_RP,Adj_SR_MV,Adj_SR_MinVol, Adj_SR_EW))) %>% pivot_wider(names_from = Portfolio, values_from = Adj..Sharpe.Ratio)
 
 #Calculate annualised returns 
 EW_ann_Return <- round(Return.annualized(EW_portfolio_return_weighted, scale = 12, geometric = TRUE),2)
@@ -1108,33 +1237,479 @@ Min_Vol_ann_Return <- round(Return.annualized(Weighted_Porfolio_Returns_MinVol, 
 RP_ann_Return <- round(Return.annualized(RP_Porfolio_Returns, scale = 12, geometric = TRUE),2)
 MV_ann_Return <- round(Return.annualized(Weighted_Porfolio_Returns_MV, scale = 12, geometric = TRUE),2)
 
+table_data <- data.frame(cbind(Portfolio = c("Equally Weighted", "Minimum-Variance", "Mean-Variance","Risk Parity"),
+      `Returns(Ann.)` = c(EW_ann_Return, Min_Vol_ann_Return, MV_ann_Return,RP_ann_Return),
+      `Adj. Sharpe Ratio` = c(Adj_SR_RP,Adj_SR_MV,Adj_SR_MinVol, Adj_SR_EW)))
+
+
+
+# gt(table_data) %>%
+#   tab_header(
+#     title = "Portfolio Performance"
+#   ) %>%
+#   cols_label(
+#     Portfolio = "Portfolio",
+#     Returns.Ann..="Returns (Ann.)",
+#     Adj..Sharpe.Ratio="Adj.Sharpe Ratio"
+#   )%>%
+#   
+#    tab_footnote( footnote = 'This table displays the standalone performance of the portfolios.',
+#                 locations = cells_column_labels(columns = contains('Portfolio'))) 
+
 # Calvulating SD
 # EW_ann_SD <- round(StdDev.annualized(EW_portfolio_return_weighted, scale = ),2)
 # Min_Vol_ann_SD <- round(StdDev.annualized(Weighted_Porfolio_Returns_MinVol, scale = 12, geometric = TRUE),2)
 # RP_ann_SD <- round(StdDev.annualized(RP_Porfolio_Returns, scale = 12, geometric = TRUE),2)
 # MV_ann_SD <- round(StdDev.annualized(Weighted_Porfolio_Returns_MV, scale = 12, geometric = TRUE),2)
-
- 
-table_data <- data.frame(cbind(Portfolio = c("Equally Weighted", "Minimum-Variance", "Mean-Variance","Risk Parity"),
-      `Returns(Ann.)` = c(EW_ann_Return, Min_Vol_ann_Return, MV_ann_Return,RP_ann_Return),
-      `Sharpe Ratio(Ann.)` = c(SR_EW,SR_MinVol,SR_MV, SR_RP)))
-
-
-
-gt(table_data) %>%
-  tab_header(
-    title = "Portfolio Performance"
-  ) %>%
-  cols_label(
-    Portfolio = "Portfolio",
-    Returns.Ann..="Returns (Ann.)",
-    Sharpe.Ratio.Ann..="Sharpe Ratio (Ann.)"
-  )
 ```
+
+The comparison in Table 1 reveals distinctive characteristics of each strategy. The Minimum-Variance Portfolio (MVP) portfolio, while exhibiting the lowest volatility and pain index, suggesting lower risk, it also leads in terms of the adjusted Sharpe ratio compared to the other portfolios, followed by the Mean-Variance (MVO) portfolio (seen in Table 2), implying potential nefficiency in risk-adjusted returns, aligning with conclusions by @chaves2011risk.
+
+The Risk Parity, along with the MVO, demonstrates superior annualized returns, consistent with the findings of @maillard2010properties. The Risk Parity, MVO, and EW portfolios have a positive and greater than the benchmark excess return statistic, whereas MVP has a negative excess return statistic, it implies that RP, MVO, and EW have generated higher returns than the S&P 500 index over the same period, after adjusting for the risk-free rate, whereas MVP has lagged in this regard
+
+The S&P 500, has the highest cumulative returns, but bears the highest volatility and pain index. On the other hand, the Risk Parity portfolio, with a higher adjusted Sharpe ratio than the S&P 500, suggests potential efficiency in risk-adjusted returns and also exhibits the highest up-down ratio which indicates that the portfolio has a greater ability to capture upside potential while minimizing downside risk. In contrast the MVP has the lowest up-down ratio, followed by the equally weighted portfolio which is unsurprising since these portfolios are constructed to be more conservative. It suggests that these portfolios have a greater focus on capital preservation and downside protection, which also means it has a lower ability to capture upside potential. 
+
+The pain index, a measure of risk in losses, aligns with the drawdown graph in Figure \ref{Figure3} and the average drawdown in Table 1. It reaffirms that the S&P 500 experiences the greatest drawdown, followed by the Risk Parity portfolio, with MVP showing the lowest drawdown.
+
+Examining tracking error and information ratio provides insights into portfolio consistency and effectiveness. The MVO strategy stands out with the lowest tracking error and the highest information ratio, indicates that the portfolio has consistently generated excess returns relative to the benchmark, taking into account the volatility of those returns..MVP exhibits the highest tracking error. Correspondingly, the information ratio suggests that MVP consistently underperforms the benchmark on a risk-adjusted basis, aligning with its lower excess returns and reaffirming the findings in Figure \ref{Figure4}-\ref{Figure8}.
+
+The modified Conditional Value at Risk (CVaR) assesses risk-adjusted performance, representing the expected loss beyond the 95% confidence level. Therefore in the worst 5% of the returns, your average loss of the Risk Parity portfolio is lower than the S&P 500 index. However, again as expected, given the risk-averse nature of the portfolios, MVO and MVP has a smaller expected average loss than the Risk Parity portfolio, but the Equally weighted portfolio has a smaller average loss than the MVO portfolio, and only marginally more than the MVP portfolio.
+
+
+
+```{r, results='asis'}
+comparison_data <- merge(sp500, all_portfolios , by="date") %>%  gather(Portfolio, Return,-date)
+BM <- "S&P 500"
+Bm <- "S&P 500"
+
+Hist_comp <- function(funds, BM){
+ portfolios_xts <- funds%>%  tbl_xts(cols_to_xts = Return, spread_by = Portfolio, Colnames_Exact = T)
+spxts <- 
+      sp500 %>% filter(date>="2002-03-31") %>% 
+      tbl_xts(Colnames_Exact = T) 
+    
+Moments_hist <- 
+      bind_rows(
+        data.frame(Return.cumulative(portfolios_xts)) %>% round(., 3),
+        data.frame(Return.annualized(portfolios_xts, scale = 12, geometric = T)) %>% round(., 3),
+        data.frame(PerformanceAnalytics::Return.annualized.excess(portfolios_xts,spxts) ) %>% round(., 3),
+        data.frame(sd.annualized(portfolios_xts, scale = 12, geometric = T)) %>% round(., 3),
+        data.frame(PainIndex(portfolios_xts, scale = 12, geometric = T)) %>% round(., 3),
+        data.frame(AverageDrawdown(portfolios_xts, scale = 12)) %>% round(., 3),
+        data.frame(fmxdat::Safe_TE(Ra = portfolios_xts, Rb = spxts, scale = 12)) %>% round(., 3),
+        data.frame(PerformanceAnalytics::InformationRatio(Ra = portfolios_xts, Rb = spxts)) %>% round(., 3),
+        data.frame(PerformanceAnalytics::UpDownRatios(Ra = portfolios_xts, Rb = spxts, method = "Percent", side = "Up")) %>% round(., 3),
+        data.frame(PerformanceAnalytics::CVaR(R = portfolios_xts, p = 0.05, method = "modified")) %>% round(., 3)
+        ) %>% 
+        
+        tibble::rownames_to_column("Info") %>%
+        mutate(Period = glue::glue("Historical"), Info = c("Cum Returns", "Returns (Ann.)", "Returns Excess (Ann.)", "SD (Ann.)","Pain Index", 
+                                                 "Avg DD",  "Tracking Error","Information Ratio",  "Up-Down Ratio", "Modified CVaR")) 
+# This line replaces the `.` with a space.
+  # Note the forward slashes, as `.` there means everything, `\\.` means a full-stop
+  colnames(Moments_hist) <- gsub("\\.", " ", colnames(Moments_hist))
+
+Moments_hist}
+
+
+Fundselected <- c("SP 500","Risk Parity", "MVP", "MVO", "EW")
+Tab_stats_hist <- Hist_comp(comparison_data %>% filter(Portfolio %in% Fundselected),BM)
+
+Make_perc_hist <- 
+  c( "Cum Returns", "Returns (Ann.)", "Returns Excess (Ann.)", "SD (Ann.)",
+     "Avg DD", "Tracking Error")
+
+Rows_to_Perc_hist <- 
+  Tab_stats_hist %>% mutate(RN=row_number()) %>% filter(Info %in% Make_perc_hist) %>% pull(RN)
+colnams_hist <- colnames(Tab_stats_hist)
+Cols_length_hist <- ncol(Tab_stats_hist)
+library(gt)
+
+tab_history <- 
+  
+  Tab_stats_hist %>% 
+  
+  gt::gt(groupname_col = 'Period', caption = 'Fund Moments Comparison') %>% 
+      tab_header(title = glue::glue("Table 1: Long-Term Index Statistics: Relative to {BM}")) %>% 
+      fmt_percent(
+      columns = 2:Cols_length_hist,
+      rows = Rows_to_Perc_hist,
+      decimals = 1
+    ) %>%   
+  sub_missing(
+    columns = all_of(colnams_hist),
+    missing_text = '-'
+  ) %>%
+  
+   tab_footnote( footnote = 'Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate',
+                locations = cells_column_labels(columns = contains('Info'))) %>%
+  
+      tab_style(
+        style = list(
+            cell_fill(color = 'gray27', alpha = 0.15),
+            cell_text(size = 'large', weight = 'bold',align = 'left')
+
+        ),
+        locations = cells_row_groups()) 
+
+tab_history %>% 
+  
+  tab_options(data_row.padding = px(4),table.width = pct(100),
+            column_labels.font.size = pct(50),
+            column_labels.vlines.width = 1, table.font.size = pct(80)) %>%
+                tab_options(data_row.padding = px(6),
+                column_labels.font.size = pct(100)) %>% 
+  tab_style(style = cell_text(weight = 1200, align = 'left'),locations = cells_title(groups = 'title')) %>%
+    tab_style(style = cell_text(color = 'darkgrey', transform = 'uppercase', align = 'center'),
+              locations = cells_column_labels(everything())) 
+```
+
+
+```{r, results='asis'}
+gt(Sharpe_data) %>% tab_options(data_row.padding = px(4),table.width = pct(100),
+            column_labels.font.size = pct(50),
+            column_labels.vlines.width = 1, table.font.size = pct(80)) %>%
+                tab_options(data_row.padding = px(6),
+                column_labels.font.size = pct(100)) %>% 
+      tab_header(title = glue::glue("Table 2: Adjusted Sharpe Ratio: Relative to {BM}")) %>% 
+  
+   tab_footnote( footnote = 'Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate',
+                locations = cells_column_labels(columns = contains('Info'))) %>%
+ 
+  tab_style(style = cell_text(weight = 1200, align = 'left'),locations = cells_title(groups = 'title')) %>%
+    tab_style(style = cell_text(color = 'darkgrey', transform = 'uppercase', align = 'center'),
+              locations = cells_column_labels(everything()))
+```
+
+## Stratified Sample Periods
+
+Tables 3 and 4 provide a more detailed exploration of the statistics presented in Tables 1 and 2. Specifically, the analysis stratifies high and low volatility periods concerning exchange rate movements (between the South African Rand and the US Dollar), gold movements, and Brent crude oil movements. The focus is on understanding how each portfolio reacts relative to the S&P 500 index during these different volatility conditions.
+
+The inclusion of exchange rate movement (US Dollar to Rand) is crucial when constructing a portfolio with both local (South African) and global (US) assets. Currency fluctuations can significantly impact portfolio value, as changes in exchange rates affect the value of global assets when converted back to the local currency. Foreign exchange exposure involves the risk that fluctuations in exchange rates will influence the value of a portfolio's assets, liabilities, or cash flows. For a portfolio with both local and global assets, shifts in the exchange rate between the Rand and the US Dollar can impact the value of US assets when converted back to Rand. 
+
+In the context of gold and Brent crude oil literature, extensive research demonstrates the spillover effects of the global crude oil and gold markets on equity and bond markets[^1].
+
+[^1]: For interested readers, relevant literature includes @dai2021bond, @balcilar2020oil, @morrison2019energy, @kang2014impact, @akhtaruzzaman2021gold, @cohen2010gold, @lucey2003international, @sadorsky1999oil, @chiang2013relationships, @shahzad2017dependence, @choudhry2015relationship, @morema2020impact, @gomes2014volatility. However, these references won't be expanded upon in this analysis, as they fall outside the focus of this study.
+
+
+
+
+<!-- ### Market conditions -->
+<!-- Divide your data based on different market conditions, such as bull markets, bear markets, or periods of economic expansion and contraction. -->
+<!-- Explore how your portfolio reacts to varying market environments for both local and global assets. -->
+
+
+```{r}
+
+# # Load required libraries
+# library(zoo)
+# library(dplyr)
+# # Winzorising:
+# 
+# Idxs <-
+#   
+# all_portfolios %>% gather(Portfolio, Return,-date) %>%
+#     mutate(Year = format(date, "%Y")) %>%  group_by(Portfolio) %>% 
+#   
+#   mutate(Top = quantile(Return, 0.99), Bot = quantile(Return, 0.01)) %>% 
+#   
+#   mutate(Return = ifelse(Return > Top, Top, 
+#                          
+#                          ifelse(Return < Bot, Bot, Return))) %>% ungroup()
+# 
+# 
+# # Calculate returns
+# returns <-return_mat %>%
+#   mutate(total_returns = `GlobalAgg Unhedged USD` + ALBI + J433 + `MSCI ACWI`) %>%
+#   select(date, total_returns) 
+# 
+# # Calculate price trends
+# price_trends <- diff(returns$total_returns)
+# 
+# # Calculate moving averages
+# short_window <- 12
+# long_window <- 24
+# short_ma <- rollapplyr(returns$total_returns, short_window, mean)
+# long_ma <- rollapplyr(returns$total_returns, long_window, mean)
+# 
+# # Calculate volatility
+# volatility <- sd(returns$total_returns)
+# 
+#  # Classify market
+#   market_conditions <- case_when(
+#     price_trends > 0 & short_ma > long_ma ~ "Bull Market",
+#     price_trends < 0 & short_ma < long_ma ~ "Bear Market",
+#     TRUE ~ "Neutral"
+#   )
+# 
+#   # Extract dates for Bull and Bear markets
+#   bull_dates <- returns$date[price_trends > 0 & short_ma > long_ma]
+#   bear_dates <- returns$date[price_trends < 0 & short_ma < long_ma]
+#   
+# 
+#   
+# Comparisons <- function(Idxs, Ys, Alias){
+#    
+#     Unconditional_SD <- 
+#         
+#         Idxs %>% 
+#         
+#         group_by(Portfolio) %>% 
+#         
+#         mutate(Full_SD = sd(Return) * sqrt(12)) %>% 
+#         
+#         filter(date %in% Ys) %>% 
+#         
+#         summarise(SD = sd(Return) * sqrt(12), across(.cols = starts_with("Full"), .fns = max)) %>% 
+#         
+#         arrange(desc(SD)) %>% 
+#         
+#         group_by(Portfolio) %>% 
+#         
+#         mutate(Ratio = SD / Full_SD)
+#     
+#     Unconditional_SD
+#     
+# }
+# 
+# Bull_market <- Comparisons(Idxs, Ys = bull_dates)
+# Bear_market <- Comparisons(Idxs, Ys = bear_dates)
+
+```
+
+```{r}
+Monthly_ZAR <- read_rds("/Users/gabriellaneilon/Library/Mobile Documents/com~apple~CloudDocs/Masters/Data_23/Monthly_zar.rds")
+ZAR.USD <- Monthly_ZAR  %>% tbl_xts(., cols_to_xts = value, spread_by = Tickers) %>% xts_tbl()%>%  mutate(ZAR.USD.Return=X.ZAR.USD/lag(X.ZAR.USD)-1) %>% select(-X.ZAR.USD) %>% gather("Index", "Return",-date)
+
+
+ZARSD <- ZAR.USD %>% 
+    filter(date>=lubridate::ymd(20020228)) %>% #to match the index data
+  mutate(Year = format(date, "%Y"))%>% #we have montly data so we need to look at yearly rather
+    arrange(date) %>% 
+    group_by(Year) %>% summarise(SD = sd(Return)*sqrt(12)) %>% 
+    
+    # Top Decile Quantile overall (highly volatile month for ZAR:
+    mutate(TopQtile = quantile(SD, 0.8, na.rm = TRUE),
+           
+           BotQtile = quantile(SD, 0.2, na.rm = TRUE))
+
+
+
+Hi_Vol <- ZARSD %>% filter(SD > TopQtile) %>% pull(Year)
+
+Low_Vol <- ZARSD %>% filter(SD < BotQtile) %>% pull(Year)
+
+
+
+
+
+
+SD_comp <- function(funds, BM, Period, Time) {
+  
+  portfolios_xts <- funds %>%group_by(Portfolio) %>% 
+  
+   mutate(Top = quantile(Return, 0.99), Bot = quantile(Return, 0.01)) %>% 
+  
+   mutate(Return = ifelse(Return > Top, Top, 
+                          
+                          ifelse(Return < Bot, Bot, Return))) %>% 
+    mutate(Year = format(date, "%Y")) %>%
+    filter(Year %in% Period) %>%
+    tbl_xts(cols_to_xts = Return, spread_by = Portfolio, Colnames_Exact = TRUE)
+
+  spxts <- sp500 %>%
+    filter(date >= "2002-03-31") %>%
+    mutate(Year = format(date, "%Y")) %>%
+    filter(Year %in% Period) %>%
+    tbl_xts(Colnames_Exact = TRUE)
+
+  Moments_SD <- bind_rows(
+    data.frame(Return.annualized(portfolios_xts, scale = 12, geometric = TRUE)) %>% round(., 3),
+    data.frame(PerformanceAnalytics::Return.annualized.excess(portfolios_xts, spxts)) %>% round(., 3),
+    data.frame(PerformanceAnalytics::AdjustedSharpeRatio(portfolios_xts)) %>% round(., 3),
+    data.frame(PainIndex(portfolios_xts, scale = 12, geometric = TRUE)) %>% round(., 3),
+    data.frame(AverageDrawdown(portfolios_xts, scale = 12)) %>% round(., 3),
+    data.frame(fmxdat::Safe_TE(Ra = portfolios_xts, Rb = spxts, scale = 12)) %>% round(., 3),
+    data.frame(PerformanceAnalytics::InformationRatio(Ra = portfolios_xts, Rb = spxts)) %>% round(., 3),
+    data.frame(PerformanceAnalytics::CVaR(R = portfolios_xts, p = 0.05, method = "modified")) %>% round(., 3)
+  ) %>% 
+    tibble::rownames_to_column("Info") %>% 
+    mutate(Time = glue::glue("{Time}"), Info = c( "Returns (Ann.)", "Returns Excess (Ann.)",  "Adj. Sharpe Ratio", "Pain Index", 
+                                                       "Avg DD", "Tracking Error", "Information Ratio", "Modified CVaR"))%>% 
+        relocate(Time, .before = Info) %>% as_tibble() 
+
+  colnames(Moments_SD) <- gsub("\\.", " ", colnames(Moments_SD))
+  
+  Moments_SD
+}
+
+Fundselected <- c("SP 500", "Risk Parity", "MVP", "MVO", "EW")
+High_comp <- SD_comp(comparison_data %>% filter(Portfolio %in% Fundselected), BM, Period = Hi_Vol, Time="High Volatility Currency Movements")
+
+Low_comp <- SD_comp(comparison_data %>% filter(Portfolio %in% Fundselected), BM, Period = Low_Vol, Time="Low Volatility Currency Movements")
+```
+
+
+```{r}
+Make_table <- function(Tab, BM, Table=1) {
+  Make_perc<- c("Returns (Ann.)", "Returns Excess (Ann.)",  "Avg DD", "Tracking Error")
+
+  Rows_to_Perc <- Tab %>%
+    mutate(RN = row_number()) %>%
+    filter(Info %in% Make_perc) %>%
+    pull(RN)
+
+  colnams<- colnames(Tab)
+  Cols_length <- ncol(Tab)
+
+  tab <- Tab %>%
+    gt(groupname_col = 'Time', caption = "Index Statistics: Relative to {BM}") %>%
+    tab_header(title = glue::glue("Table {Table}: Fund Moments Comparison")) %>%
+    fmt_percent(
+      columns = 2:Cols_length,
+      rows = Rows_to_Perc,
+      decimals = 1
+    ) %>%
+    sub_missing(
+      columns = all_of(colnams),
+      missing_text = '-'
+    ) %>%
+    tab_footnote(
+      footnote = 'Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate, except for Adjsuted Sharpe Ratio which uses a 0% risk-free rate',
+      locations = cells_column_labels(columns = contains('Info'))
+    ) %>%
+    tab_style(
+      style = list(
+        cell_fill(color = 'gray27', alpha = 0.15),
+        cell_text(size = 'large', weight = 'bold', align = 'left')
+      ),
+      locations = cells_row_groups()
+    )
+
+  tab %>%
+    tab_options(
+      data_row.padding = px(4),
+      table.width = pct(100),
+      column_labels.font.size = pct(50),
+      column_labels.vlines.width = 1,
+      table.font.size = pct(80)
+    ) %>%
+    tab_options(
+      data_row.padding = px(6),
+      column_labels.font.size = pct(100)
+    ) %>%
+    tab_style(
+      style = cell_text(weight = 1200, align = 'left'),
+      locations = cells_title(groups = 'title')
+    ) %>%
+    tab_style(
+      style = cell_text(color = 'darkgrey', transform = 'uppercase', align = 'center'),
+      locations = cells_column_labels(everything())
+    )
+}
+
+# Example usage
+
+
+
+```
+```{r}
+
+```
+
+
+
+```{r}
+
+
+# Load required libraries
+library(zoo)
+library(dplyr)
+
+
+gold <- return_mat %>%select(date,`Gold Spot $/Oz (GOLDS COMDTY)`) %>% 
+    filter(date>=lubridate::ymd(20020228)) %>% #to match the index data
+  mutate(Year = format(date, "%Y"))%>% #we have montly data so we need to look at yearly rather
+    arrange(date) %>% 
+    group_by(Year) %>% summarise(SD = sd(`Gold Spot $/Oz (GOLDS COMDTY)`)*sqrt(12)) %>% 
+    
+    # Top Decile Quantile overall (highly volatile month for ZAR:
+    mutate(TopQtile = quantile(SD, 0.8, na.rm = TRUE),
+           
+           BotQtile = quantile(SD, 0.2, na.rm = TRUE))
+
+
+
+  # Extract dates 
+
+Hi_gold <- gold %>% filter(SD > TopQtile) %>% pull(Year)
+
+Low_gold  <- gold  %>% filter(SD < BotQtile) %>% pull(Year)
+
+High_comp_gold <- SD_comp(comparison_data %>% filter(Portfolio %in% Fundselected), BM, Period = Hi_gold, Time="High Volatility Gold Movements")
+
+Low_comp_gold <- SD_comp(comparison_data %>% filter(Portfolio %in% Fundselected), BM, Period = Low_gold, Time="Low Volatility Gold Movements")
+
+
+
+```
+
+
+
+
+```{r}
+brent <- combined_data %>% select(date, BRENT) %>% 
+    filter(date>=lubridate::ymd(20020228)) %>% #to match the index data
+  mutate(Year = format(date, "%Y"))%>% #we have montly data so we need to look at yearly rather
+    arrange(date) %>% 
+    group_by(Year) %>% summarise(SD = sd(BRENT)*sqrt(12)) %>% 
+    
+    # Top Decile Quantile overall (highly volatile month for ZAR:
+    mutate(TopQtile = quantile(SD, 0.8, na.rm = TRUE),
+           
+           BotQtile = quantile(SD, 0.2, na.rm = TRUE))
+
+
+
+  # Extract dates 
+
+Hi_brent <- brent %>% filter(SD > TopQtile) %>% pull(Year)
+
+Low_brent  <- brent %>% filter(SD < BotQtile) %>% pull(Year)
+
+High_comp_brent <- SD_comp(comparison_data %>% filter(Portfolio %in% Fundselected), BM, Period = Hi_brent, Time="High Volatility Brent Movements")
+
+Low_comp_brent <- SD_comp(comparison_data %>% filter(Portfolio %in% Fundselected), BM, Period = Low_brent, Time="Low Volatility Brent Movements")
+
+
+```
+Table 3 presents high volatility scenarios for the portfolios in comparison to the S&P 500 index.
+
+In terms of risk-adjusted performance, the Risk Parity portfolio consistently exhibits a lower adjusted Sharpe ratio compared to the other portfolios. However, it still outperforms the S&P 500 index. Notably, the MVP portfolio stands out with the most promising risk-adjusted returns among the portfolios.
+
+It is interesting to observe that all the portfolios surpass the benchmark index, aligning with the trends identified in Figures \ref{Figure4} through \ref{Figure8}. This consistency in outperformance suggests the effectiveness of the selected portfolio strategies across various market conditions and reinforces their potential for delivering superior risk-adjusted returns compared to the S&P 500.
+
+```{r}
+High_vol_movements <- bind_rows(High_comp, High_comp_gold,High_comp_brent)
+
+Make_table(High_vol_movements, BM, Table=3)
+```
+
+
+Compared to the previous table, the performance of the portfolios (Table 4) are generally better under the low volatility scenarios than under the high volatility scenarios. 
+```{r}
+Low_vol_movements <- bind_rows(Low_comp, Low_comp_gold,Low_comp_brent)
+
+Make_table(Low_vol_movements, BM, Table=4)
+
+```
+
+
+
 
 # Conclusion{-}
 
-In this comparative analysis, I scrutinized Mean-Variance Optimization (MVO), Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios. The findings unveiled the strengths and weaknesses inherent in each strategy. While MVO and MVP demonstrated superior risk-adjusted performance and concentration issues, the Risk Parity Portfolio exhibited balanced risk contributions across assets, albeit with certain sensitivity to asset selection. The study highlights the need for a nuanced approach in portfolio optimization, considering both returns and risk diversification. Such insights contribute significantly to navigating the complexities of contemporary financial markets and aid in constructing more robust investment strategies.
+The analysis different portfolio startegies can be useful when investots evaluate risk-adjusted performance that align with their risk tolerance. For risk-averse investors prioritizing capital preservation, the MVP strategy may be favored despite its negative excess return, given its lower volatility and pain index. In contrast, risk-tolerant investors seeking higher returns may lean towards MVO or EW, which exhibit higher excess return statistics and upside potential.
 
 ```{r}
 # 

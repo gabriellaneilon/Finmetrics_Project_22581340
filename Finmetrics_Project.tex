@@ -170,7 +170,8 @@
 \begin{frontmatter}  %
 
 \title{Optimizing Portfolio Strategies: A Comparative Study of
-Mean-Variance, Minimum-Variance, and Risk Parity Portfolios}
+Mean-Variance, Minimum-Variance, Equally Weighted, and Risk Parity
+Portfolios}
 
 % Set to FALSE if wanting to remove title (for submission)
 
@@ -190,20 +191,23 @@ Mean-Variance, Minimum-Variance, and Risk Parity Portfolios}
 
 \begin{abstract}
 \small{
-This study conducts a comprehensive examination of portfolio
-optimization strategies, focusing on Mean-Variance Optimization (MVO),
-Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios.
-Acknowledging the foundational principles of Modern Portfolio Theory
-(MPT), the analysis critiques MVO's concentration issues and MVP's
-struggles with uneven weight distributions. Subsequently, the study
-explores the Risk Parity Portfolio's potential in mitigating asset
-concentration and optimizing risk diversification. The paper utilizes
-various indices to construct portfolios, employing a range of
-optimization techniques and considering global assumptions. The results
-reveal nuanced insights into each portfolio's performance, risk-adjusted
-returns, and weight allocations across asset classes. This comparative
-study highlights the strengths and weaknesses of each strategy, shedding
-light on their suitability in diverse market conditions.
+This paper critically examines the effectiveness of Mean-Variance
+Optimization (MVO), Minimum-Variance Portfolio (MVP), Equally Weighted
+and Risk Parity portfolio strategies in the the long run and during
+volatile periods. While MVO aims to maximize expected returns while
+minimizing risks, it often results in concentrated portfolios vulnerable
+to abrupt changes. MVP, focusing on minimizing overall portfolio
+variance without explicit return predictions, faces issues of
+concentration on low-volatility assets. The study introduces Risk Parity
+portfolios as an alternative strategy, emphasizing risk budgeting to
+achieve optimal risk diversification. The study concludes that all three
+portfolio strategies consistently outperform the S\&P 500 index,
+demonstrating their potential for delivering superior risk-adjusted
+returns across various market conditions. Notably, Risk Parity
+portfolios exhibit balanced risk contributions, making them resilient in
+downturns, and the MVP strategy stands out with promising risk-adjusted
+returns. The research provides valuable insights for investors seeking
+optimal portfolio strategies in dynamic markets.
 }
 \end{abstract}
 
@@ -428,23 +432,23 @@ oversight. However, implementing this approach optimizes risk
 distribution, acting as a balanced risk filter that prevents any single
 asset from dominating the portfolio, as observed in the case of the MVP.
 
-\hypertarget{data-and-methodology}{%
-\section{\texorpdfstring{Data and Methodology
-\label{-}}{Data and Methodology }}\label{data-and-methodology}}
+\hypertarget{portfolio-construction}{%
+\section{Portfolio construction}\label{portfolio-construction}}
 
 This paper aligns closely with Maillard \emph{et al.}
 (\protect\hyperlink{ref-maillard2010properties}{2010}) by constructing a
-G\emph{lobal diversified portfolio} and utilizes monthly data provided
-by Katzke (\protect\hyperlink{ref-katzke2023portfoliocourse}{2023a}),
-focusing on various indices including the Morgan Stanley Capital
-International All Country World Index (``MSCI ACWI''), the Gold Spot
-rate (``Gold Spot \$/Oz''), the Bloomberg Global Aggregate Bond Index
-(``GlobalAgg Unhedged USD''), the Capped SWIX All Share Index
-(``J433''), and the FTSE/JSE All Bond Index (``ALBI''). The analysis
-aims to compare various portfolio optimization strategies. Utilizing a
-standard shrinkage technique, covariance matrices are estimated for all
-strategies (\protect\hyperlink{ref-chaves2011risk}{Chaves, Hsu, Li \&
-Shakernia, 2011}).
+\emph{Global diversified portfolio} and utilizes monthly data from
+2002-02-28 to 2023-08-31 provided by Katzke
+(\protect\hyperlink{ref-katzke2023portfoliocourse}{2023a}), focusing on
+various indices including the Morgan Stanley Capital International All
+Country World Index (``MSCI ACWI''), the Gold Spot rate (``Gold Spot
+\$/Oz''), the Bloomberg Global Aggregate Bond Index (``GlobalAgg
+Unhedged USD''), the Capped SWIX All Share Index (``J433''), and the
+FTSE/JSE All Bond Index (``ALBI''). The analysis aims to compare various
+portfolio optimization strategies. Utilizing a standard shrinkage
+technique, covariance matrices are estimated for all strategies
+(\protect\hyperlink{ref-chaves2011risk}{Chaves, Hsu, Li \& Shakernia,
+2011}).
 
 The study adopts several global assumptions: (1) full investment
 (\(\boldsymbol{\omega^1} 1=1\)), (2) a long-only
@@ -544,49 +548,57 @@ s.t.\ \boldsymbol{Cw}=\boldsymbol{c}, \boldsymbol{Dw}\le\boldsymbol{d}
 \hypertarget{results}{%
 \section{\texorpdfstring{Results \label{-}}{Results }}\label{results}}
 
-In comparison to other portfolios, the \(\frac{1}{N}\) portfolio is
-outperformed by the MVP and MVO in terms of the Sharpe Ratio. On the
-other hand, the Risk Parity Portfolio, along with the MVO, demonstrates
-superior annualized returns, consistent with the findings of Maillard
-\emph{et al.} (\protect\hyperlink{ref-maillard2010properties}{2010}).
-Notably, the Risk Parity Portfolio demonstrates extensive weight
-allocations across most asset classes. However, a noteworthy observation
-emerges in the allocation pattern regarding the `ALBI' asset class.
-Despite its relatively lower risk contribution, this class holds a
-significant weight in the portfolio, showcasing the intuitive nature of
-the Risk Parity strategy. In contrast, the MVO aggressively targets
-equities and gold but overlooks `ALBI.'
+\hypertarget{preliminary-analysis}{%
+\subsection{Preliminary analysis}\label{preliminary-analysis}}
 
-Nevertheless, the considerable weight allocation towards equities in the
-Risk Parity Portfolio raises questions. This anomaly might be attributed
-to the chosen `asset' classes, primarily composed of indexes and hence
-exhibiting more stability. However, in a `real-life' portfolio
-comprising individual assets, this allocation might differ. This aligns
-with @Chaves \emph{et al.}
-(\protect\hyperlink{ref-chaves2011risk}{2011})'s insight, indicating
-Risk Parity's sensitivity to asset selection, which remains more art
-than science.
+This section examines the risk contribution, weight allocation, and
+cumulative returns of each portfolio. While offering insights into
+expected portfolio behavior, it is essential to recognize that this
+analysis alone may not comprehensively assess portfolio performance. A
+more robust and detailed analysis follows this section.
 
-Across portfolio management, Mean-Variance Optimization (MVO) and Risk
-Parity strategies emerge as prominent contenders in cumulative returns
-and annualized performance. However, when assessing portfolios based on
-risk-adjusted performance, the Minimum-Variance Portfolio (MVP) and
-Mean-Variance strategy take the lead, particularly excelling in the
-Sharpe ratio. This ratio, which balances return against risk, places
-these portfolios at the forefront in delivering optimal returns
-considering inherent investment risks, aligning with Chaves \emph{et
-al.} (\protect\hyperlink{ref-chaves2011risk}{2011})'s conclusions.
-
-Although the Risk Parity Portfolio boasts substantial annualized
-returns, it lags in the Sharpe ratio department.
-
-Upon analyzing risk distribution across principal portfolios, the
-\(\frac{1}{N}\) strategy predominantly budgets risk toward equities,
-implying a high equity risk. Furthermore, it aligns with the typical
-weight distribution of minimum variance, heavily concentrated in
-low-risk asset classes like bonds, as found in
+Figure \ref{Figure1} illustrates the expected weight allocation of the
+Risk Parity portfolio, aligning with its relative risk contributions. In
+contrast, the Minimum Variance Portfolio (MVP) portfolio exhibits an
+inverse relationship, with a greater risk contribution corresponding to
+a smaller weight allocation. A similar trend is observed in the MVO
+portfolio, with variations. The Risk Parity Portfolio, notable for its
+diverse allocation, particularly allocates a significant weight to the
+`ALBI' asset class, showcasing the intuitive nature of the Risk Parity
+strategy. Conversely, the MVP portfolio, while aggressively targeting
+equities and gold, overlooks `J433' and aligns with the traditional
+weight distribution of minimum variance, concentrating heavily on
+low-risk asset classes such as bonds
 (\protect\hyperlink{ref-lohre2014diversifying}{Lohre \emph{et al.},
 2014}).
+
+Figure \ref{Figure1} also provides insights into the investment risk
+profiles of different portfolios, revealing key exposures for each asset
+class. Global bonds face currency risk, while local equities are subject
+to market risk influenced by economic conditions, geopolitical events,
+and investor sentiment. Global equities are exposed to global market
+movements, economic conditions, currency risk, and political and
+regulatory risk. The Risk Parity portfolio demonstrates the highest
+exposure to both local and global equities, indicating sensitivity to
+global market dynamics. In contrast, the MVP Portfolio has a greater
+emphasis on global and local bonds.
+
+A higher weight allocation to bonds in a portfolio offers several
+benefits. Bonds are generally less volatile than equities, contributing
+to a more stable portfolio value, which is suitable for risk-averse
+investors. Bonds also provide regular interest payments, creating a
+predictable income stream. Additionally, bonds are considered safer in
+terms of capital preservation, offering a hedge during equity market
+downturns. The lower correlation between bonds and equities contributes
+to diversification, reducing overall portfolio risk.
+
+On the other hand, the Mean-Variance Optimization (MVO) exhibits a
+higher exposure to the gold spot rate and local stocks. This suggests
+that gold serves as a potential protective buffer, employed for hedging
+against inflation risk and mitigating market and economic stress.
+
+Figure \ref{Figure2} compares cumulative returns across portfolio
+strategies, highlighting MVO and Risk Parity as prominent contenders.
 
 \begin{figure}[H]
 
@@ -606,35 +618,417 @@ low-risk asset classes like bonds, as found in
 \caption{Cumulative Returns \label{Figure2}}\label{fig:Figure2}
 \end{figure}
 
-\begin{longtable}{lrr}
+\hypertarget{further-analysis}{%
+\subsection{Further Analysis}\label{further-analysis}}
+
+A drawdown signifies the extent to which the portfolio declines from its
+peak value before subsequently recovering. The portfolios were assessed
+in relation to the S\&P 500. While the S\&P 500 may not be the ideal
+benchmark, given that other portfolios are primarily constructed from
+different market indices, its broad market representation,
+market-capitalization weighting, diverse industry coverage, liquidity,
+reputation, and global influence make it the most suitable benchmark for
+this analysis.
+
+In Figure \ref{Figure3}, several crucial metrics stand out when
+dissecting this graph. These metrics include the depth, duration,
+frequency, and recovery periods of drawdowns observed in various
+portfolios relative S\&P 500 index. Notably, the S\&P 500 index exhibits
+the most substantial depth in drawdowns, coupled with the lengthiest
+recovery periods. This implies that the index not only experiences the
+most significant loss in value following its peaks but also takes an
+extended period to recover from these downturns. In contrast, the MVP
+portfolio displays lower frequency, depth, and duration of drawdowns,
+indicating comparatively smaller losses in portfolio value and
+consequently lower risk compared to other portfolios.
+
+The Risk Parity portfolio follows a similar trend to the MVP, albeit
+with greater depth in drawdowns, though not as pronounced as observed in
+the S\&P 500. This suggests that while the Risk Parity portfolio
+experiences more significant declines in value during drawdowns, it
+still maintains a risk profile that is less pronounced than that of the
+S\&P 500. The \(\frac{1}{N}\) exhibits the last amoutn of depth in
+drawdowns, followed by the MVo portfolio. The \(\frac{1}{N}\) portfolio
+demonstrates the least depth in drawdowns, with the MVO portfolio
+following closely.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure3-1} 
+
+}
+
+\caption{Drawdowns \label{Figure3}}\label{fig:Figure3}
+\end{figure}
+
+Furthermore, I conducted an analysis of the annualized risk-return
+performance of each portfolio relative to the S\&P 500 over five
+distinct periods. The initial period encompasses the entire dataset,
+while the second period spans from October 2008, marked by a significant
+drop in the S\&P 500 after reaching its peak. The third period, December
+2018, witnessed another downturn attributed to factors such as Donald
+Trump's trade war with China, global economic slowdown, and concerns
+about the Federal Reserve's rapid interest rate hikes. Additionally, the
+year 2020, marked by the onset of the COVID-19 pandemic, and January
+2022, following a peak in the S\&P 500, represent subsequent periods
+characterized by geopolitical tensions, the Ukraine war, extensive
+COVID-related lockdowns in China, interest rate hikes by the US Federal
+Reserve, and overall economic uncertainty in the US post-pandemic. These
+chosen periods were deliberately selected since it encapsulated volatile
+circumstances.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure4-1} 
+
+}
+
+\caption{Annualized Risk-Return performance of portfolios relative to SP 500 over the entire sample period. \label{Figure4}}\label{fig:Figure4}
+\end{figure}
+
+Figure \ref{Figure4}, the Mean-Variance Optimization (MVO) portfolio
+emerges with the highest potential return accompanied by moderate risk.
+Conversely, the Minimum Variance Portfolio (MVP) strategy exhibits the
+lowest risk but correspondingly the lowest return. Both Equal Weight
+(EW) and Risk Parity strategies offer a balanced combination of moderate
+returns and risks, outperforming the S\&P 500 to some extent.
+
+Figures \ref{Figure5} through \ref{Figure7} illustrate that the MVO
+portfolio achieves the highest return but also carries the highest risk
+relative to the S\&P 500 index. Meanwhile, the MVP portfolio features
+the lowest risk but at the expense of the lowest return. The Risk Parity
+portfolio showcases a moderate return with higher risk than the MVO
+portfolio.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure5-1} 
+
+}
+
+\caption{Annualized Risk-return performance of portfolios relative to SP 500 since October 2008 \label{Figure5}}\label{fig:Figure5}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure6-1} 
+
+}
+
+\caption{Annualized Risk-return performance of portfolios relative to SP 500 since December 2018 \label{Figure6}}\label{fig:Figure6}
+\end{figure}
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure7-1} 
+
+}
+
+\caption{Annualized Risk-return performance of portfolios relative to SP 500 since March 2020 \label{Figure7}}\label{fig:Figure7}
+\end{figure}
+
+Examining the portfolios' performance relative to the S\&P 500 during a
+short-term volatile period in Figure \ref{Figure8}, suggests that the
+portfolios outperform the S\&P index. Notably, the MVO portfolio
+exhibits the highest annualized return with risk levels comparable to
+those of the \(\frac{1}{N}\) and Risk Parity portfolios, albeit with the
+latter two experiencing lower returns. In contrast, the MVP portfolio
+performs less favorably among the portfolios.
+
+During a short-term volatile period depicted in Figure \ref{Figure8},
+all portfolios exhibit outperformance compared to the S\&P 500.
+Particularly noteworthy is the MVO portfolio, which not only delivers
+the highest annualized return but also maintains risk levels similar to
+the \(\frac{1}{N}\) and Risk Parity portfolios, albeit with the latter
+two experiencing lower returns. In contrast, the MVP portfolio lags
+behind in performance among the portfolios considered.
+
+\begin{figure}[H]
+
+{\centering \includegraphics{Finmetrics_Project_files/figure-latex/Figure8-1} 
+
+}
+
+\caption{Annualized Risk-return performance of portfolios relative to SP 500 since January 2022 \label{Figure8}}\label{fig:Figure8}
+\end{figure}
+
+\hypertarget{index-statistics}{%
+\subsection{Index Statistics}\label{index-statistics}}
+
+This section comprehensively explores portfolio performance through an
+in-depth analysis of various metrics, including returns, volatility,
+expected shortfall, average drawdown, and performance during market
+upswings and downswings. Notably, the assessment excludes the
+examination of beta for the portfolios. The rationale for this omission
+lies in the anticipated and confirmed beta values being less than one,
+indicative of lower volatility compared to the benchmark due to better
+diversification. Despite the exclusion of beta, other statistical
+measures are deemed sufficient for providing a comprehensive overview of
+the diverse portfolio performances.
+
+The comparison in Table 1 reveals distinctive characteristics of each
+strategy. The Minimum-Variance Portfolio (MVP) portfolio, while
+exhibiting the lowest volatility and pain index, suggesting lower risk,
+it also leads in terms of the adjusted Sharpe ratio compared to the
+other portfolios, followed by the Mean-Variance (MVO) portfolio (seen in
+Table 2), implying potential nefficiency in risk-adjusted returns,
+aligning with conclusions by Chaves \emph{et al.}
+(\protect\hyperlink{ref-chaves2011risk}{2011}).
+
+The Risk Parity, along with the MVO, demonstrates superior annualized
+returns, consistent with the findings of Maillard \emph{et al.}
+(\protect\hyperlink{ref-maillard2010properties}{2010}). The Risk Parity,
+MVO, and EW portfolios have a positive and greater than the benchmark
+excess return statistic, whereas MVP has a negative excess return
+statistic, it implies that RP, MVO, and EW have generated higher returns
+than the S\&P 500 index over the same period, after adjusting for the
+risk-free rate, whereas MVP has lagged in this regard
+
+The S\&P 500, has the highest cumulative returns, but bears the highest
+volatility and pain index. On the other hand, the Risk Parity portfolio,
+with a higher adjusted Sharpe ratio than the S\&P 500, suggests
+potential efficiency in risk-adjusted returns and also exhibits the
+highest up-down ratio which indicates that the portfolio has a greater
+ability to capture upside potential while minimizing downside risk. In
+contrast the MVP has the lowest up-down ratio, followed by the equally
+weighted portfolio which is unsurprising since these portfolios are
+constructed to be more conservative. It suggests that these portfolios
+have a greater focus on capital preservation and downside protection,
+which also means it has a lower ability to capture upside potential.
+
+The pain index, a measure of risk in losses, aligns with the drawdown
+graph in Figure \ref{Figure3} and the average drawdown in Table 1. It
+reaffirms that the S\&P 500 experiences the greatest drawdown, followed
+by the Risk Parity portfolio, with MVP showing the lowest drawdown.
+
+Examining tracking error and information ratio provides insights into
+portfolio consistency and effectiveness. The MVO strategy stands out
+with the lowest tracking error and the highest information ratio,
+indicates that the portfolio has consistently generated excess returns
+relative to the benchmark, taking into account the volatility of those
+returns..MVP exhibits the highest tracking error. Correspondingly, the
+information ratio suggests that MVP consistently underperforms the
+benchmark on a risk-adjusted basis, aligning with its lower excess
+returns and reaffirming the findings in Figure
+\ref{Figure4}-\ref{Figure8}.
+
+The modified Conditional Value at Risk (CVaR) assesses risk-adjusted
+performance, representing the expected loss beyond the 95\% confidence
+level. Therefore in the worst 5\% of the returns, your average loss of
+the Risk Parity portfolio is lower than the S\&P 500 index. However,
+again as expected, given the risk-averse nature of the portfolios, MVO
+and MVP has a smaller expected average loss than the Risk Parity
+portfolio, but the Equally weighted portfolio has a smaller average loss
+than the MVO portfolio, and only marginally more than the MVP portfolio.
+
+\setlength{\LTpost}{0mm}
+\begin{longtable}{lrrrrr}
 \caption*{
-{\large Portfolio Performance}
+{\large Table 1: Long-Term Index Statistics: Relative to S\&P 500}
 } \\ 
 \toprule
-Portfolio & Returns (Ann.) & Sharpe Ratio (Ann.) \\ 
+Info\textsuperscript{\textit{1}} & SP 500 & Risk Parity & MVP & MVO & EW \\ 
 \midrule\addlinespace[2.5pt]
-Equally Weighted & 0.09 & 0.49 \\ 
-Minimum-Variance & 0.09 & 0.5 \\ 
-Mean-Variance & 0.1 & 0.56 \\ 
-Risk Parity & 0.1 & 0.46 \\ 
+\multicolumn{6}{l}{Historical} \\ 
+\midrule\addlinespace[2.5pt]
+Cum Returns & $520.6\%$ & $606.0\%$ & $486.1\%$ & $713.1\%$ & $526.5\%$ \\ 
+Returns (Ann.) & $8.9\%$ & $9.5\%$ & $8.6\%$ & $10.2\%$ & $8.9\%$ \\ 
+Returns Excess (Ann.) & $0.0\%$ & $0.6\%$ & $-0.3\%$ & $1.3\%$ & $0.0\%$ \\ 
+SD (Ann.) & $15.1\%$ & $10.8\%$ & $7.9\%$ & $9.8\%$ & $8.7\%$ \\ 
+Pain Index & 0.071 & 0.029 & 0.016 & 0.021 & 0.019 \\ 
+Avg DD & $7.1\%$ & $4.3\%$ & $2.9\%$ & $3.6\%$ & $3.1\%$ \\ 
+Tracking Error & $0.0\%$ & $11.0\%$ & $12.0\%$ & $10.8\%$ & $11.1\%$ \\ 
+Information Ratio & - & 0.060 & -0.024 & 0.127 & 0.004 \\ 
+Up-Down Ratio & 0.000 & 0.335 & 0.249 & 0.312 & 0.254 \\ 
+Modified CVaR & -0.102 & -0.074 & -0.050 & -0.066 & -0.057 \\ 
 \bottomrule
 \end{longtable}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate\\
+\end{minipage}
+
+\setlength{\LTpost}{0mm}
+\begin{longtable}{lrrrrr}
+\caption*{
+{\large Table 2: Adjusted Sharpe Ratio: Relative to S\&P 500}
+} \\ 
+\toprule
+Info\textsuperscript{\textit{1}} & S\&P 500 & Risk Parity & MVP & MVO & EW \\ 
+\midrule\addlinespace[2.5pt]
+Adj. Sharpe Ratio & 0.669 & 0.478 & 0.635 & 0.58 & 0.568 \\ 
+\bottomrule
+\end{longtable}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate\\
+\end{minipage}
+
+\hypertarget{stratified-sample-periods}{%
+\subsection{Stratified Sample Periods}\label{stratified-sample-periods}}
+
+Tables 3 and 4 provide a more detailed exploration of the statistics
+presented in Tables 1 and 2. Specifically, the analysis stratifies high
+and low volatility periods concerning exchange rate movements (between
+the South African Rand and the US Dollar), gold movements, and Brent
+crude oil movements. The focus is on understanding how each portfolio
+reacts relative to the S\&P 500 index during these different volatility
+conditions.
+
+The inclusion of exchange rate movement (US Dollar to Rand) is crucial
+when constructing a portfolio with both local (South African) and global
+(US) assets. Currency fluctuations can significantly impact portfolio
+value, as changes in exchange rates affect the value of global assets
+when converted back to the local currency. Foreign exchange exposure
+involves the risk that fluctuations in exchange rates will influence the
+value of a portfolio's assets, liabilities, or cash flows. For a
+portfolio with both local and global assets, shifts in the exchange rate
+between the Rand and the US Dollar can impact the value of US assets
+when converted back to Rand.
+
+In the context of gold and Brent crude oil literature, extensive
+research demonstrates the spillover effects of the global crude oil and
+gold markets on equity and bond markets\footnote{For interested readers,
+  relevant literature includes Dai \& Kang
+  (\protect\hyperlink{ref-dai2021bond}{2021}), Balcilar, Gupta, Wang \&
+  Wohar (\protect\hyperlink{ref-balcilar2020oil}{2020}), Morrison
+  (\protect\hyperlink{ref-morrison2019energy}{2019}), Kang, Ratti \&
+  Yoon (\protect\hyperlink{ref-kang2014impact}{2014}), Akhtaruzzaman,
+  Boubaker, Lucey \& Sensoy
+  (\protect\hyperlink{ref-akhtaruzzaman2021gold}{2021}), Cohen \& Qadan
+  (\protect\hyperlink{ref-cohen2010gold}{2010}), Lucey \& Tully
+  (\protect\hyperlink{ref-lucey2003international}{2003}), Sadorsky
+  (\protect\hyperlink{ref-sadorsky1999oil}{1999}), Chiang, Lin \& Huang
+  (\protect\hyperlink{ref-chiang2013relationships}{2013}), Shahzad,
+  Raza, Shahbaz \& Ali
+  (\protect\hyperlink{ref-shahzad2017dependence}{2017}), Choudhry,
+  Hassan \& Shabi
+  (\protect\hyperlink{ref-choudhry2015relationship}{2015}), Morema \&
+  Bonga-Bonga (\protect\hyperlink{ref-morema2020impact}{2020}), Gomes,
+  Chaibi \& others (\protect\hyperlink{ref-gomes2014volatility}{2014}).
+  However, these references won't be expanded upon in this analysis, as
+  they fall outside the focus of this study.}.
+
+Table 3 presents high volatility scenarios for the portfolios in
+comparison to the S\&P 500 index.
+
+In terms of risk-adjusted performance, the Risk Parity portfolio
+consistently exhibits a lower adjusted Sharpe ratio compared to the
+other portfolios. However, it still outperforms the S\&P 500 index.
+Notably, the MVP portfolio stands out with the most promising
+risk-adjusted returns among the portfolios.
+
+It is interesting to observe that all the portfolios surpass the
+benchmark index, aligning with the trends identified in Figures
+\ref{Figure4} through \ref{Figure8}. This consistency in outperformance
+suggests the effectiveness of the selected portfolio strategies across
+various market conditions and reinforces their potential for delivering
+superior risk-adjusted returns compared to the S\&P 500.
+
+\setlength{\LTpost}{0mm}
+\begin{longtable}{lrrrrr}
+\caption*{
+{\large Table 3: Fund Moments Comparison}
+} \\ 
+\toprule
+Info\textsuperscript{\textit{1}} & SP 500 & Risk Parity & MVP & MVO & EW \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{6}{l}{High Volatility Currency Movements} \\ 
+\midrule\addlinespace[2.5pt]
+Returns (Ann.) & $-1.3\%$ & $4.4\%$ & $7.3\%$ & $6.8\%$ & $6.4\%$ \\ 
+Returns Excess (Ann.) & $1.2\%$ & $6.9\%$ & $9.9\%$ & $9.4\%$ & $9.1\%$ \\ 
+Adj. Sharpe Ratio & -0.079 & 0.394 & 0.886 & 0.695 & 0.725 \\ 
+Pain Index & 0.198 & 0.064 & 0.030 & 0.036 & 0.035 \\ 
+Avg DD & $15.7\%$ & $11.3\%$ & $6.2\%$ & $6.7\%$ & $6.1\%$ \\ 
+Tracking Error & $3.1\%$ & $13.8\%$ & $15.0\%$ & $13.7\%$ & $14.1\%$ \\ 
+Information Ratio & Inf & 0.492 & 0.644 & 0.675 & 0.627 \\ 
+Modified CVaR & -0.105 & -0.060 & -0.042 & -0.051 & -0.046 \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{6}{l}{High Volatility Gold Movements} \\ 
+\midrule\addlinespace[2.5pt]
+Returns (Ann.) & $2.4\%$ & $10.3\%$ & $9.7\%$ & $10.8\%$ & $9.7\%$ \\ 
+Returns Excess (Ann.) & $1.3\%$ & $9.1\%$ & $8.5\%$ & $9.6\%$ & $8.5\%$ \\ 
+Adj. Sharpe Ratio & 0.145 & 0.856 & 1.115 & 1.023 & 1.018 \\ 
+Pain Index & 0.119 & 0.036 & 0.018 & 0.025 & 0.022 \\ 
+Avg DD & $23.8\%$ & $5.1\%$ & $3.6\%$ & $4.1\%$ & $3.7\%$ \\ 
+Tracking Error & $2.7\%$ & $13.5\%$ & $14.4\%$ & $13.3\%$ & $13.5\%$ \\ 
+Information Ratio & Inf & 0.686 & 0.599 & 0.731 & 0.638 \\ 
+Modified CVaR & -0.103 & -0.061 & -0.042 & -0.052 & -0.047 \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{6}{l}{High Volatility Brent Movements} \\ 
+\midrule\addlinespace[2.5pt]
+Returns (Ann.) & $-6.7\%$ & $4.0\%$ & $7.2\%$ & $5.7\%$ & $6.1\%$ \\ 
+Returns Excess (Ann.) & $1.2\%$ & $12.8\%$ & $16.3\%$ & $14.7\%$ & $15.1\%$ \\ 
+Adj. Sharpe Ratio & -0.369 & 0.341 & 0.866 & 0.546 & 0.662 \\ 
+Pain Index & 0.324 & 0.077 & 0.026 & 0.044 & 0.035 \\ 
+Avg DD & $51.6\%$ & $11.4\%$ & $6.7\%$ & $9.1\%$ & $6.3\%$ \\ 
+Tracking Error & $3.1\%$ & $14.8\%$ & $16.5\%$ & $14.8\%$ & $15.4\%$ \\ 
+Information Ratio & Inf & 0.800 & 0.906 & 0.912 & 0.899 \\ 
+Modified CVaR & -0.111 & -0.065 & -0.042 & -0.054 & -0.047 \\ 
+\bottomrule
+\end{longtable}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate, except for Adjsuted Sharpe Ratio which uses a 0\% risk-free rate\\
+\end{minipage}
+
+Compared to the previous table, the performance of the portfolios (Table
+4) are generally better under the low volatility scenarios than under
+the high volatility scenarios. \setlength{\LTpost}{0mm}
+
+\begin{longtable}{lrrrrr}
+\caption*{
+{\large Table 4: Fund Moments Comparison}
+} \\ 
+\toprule
+Info\textsuperscript{\textit{1}} & SP 500 & Risk Parity & MVP & MVO & EW \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{6}{l}{Low Volatility Currency Movements} \\ 
+\midrule\addlinespace[2.5pt]
+Returns (Ann.) & $12.5\%$ & $9.8\%$ & $7.6\%$ & $10.0\%$ & $8.3\%$ \\ 
+Returns Excess (Ann.) & $0.0\%$ & $-2.4\%$ & $-4.3\%$ & $-2.2\%$ & $-3.7\%$ \\ 
+Adj. Sharpe Ratio & 0.976 & 1.270 & 1.261 & 1.347 & 1.279 \\ 
+Pain Index & 0.019 & 0.018 & 0.018 & 0.017 & 0.016 \\ 
+Avg DD & $4.2\%$ & $3.0\%$ & $2.5\%$ & $2.8\%$ & $2.5\%$ \\ 
+Tracking Error & $0.0\%$ & $9.3\%$ & $10.4\%$ & $9.4\%$ & $9.7\%$ \\ 
+Information Ratio & - & -0.284 & -0.467 & -0.267 & -0.430 \\ 
+Modified CVaR & -0.065 & -0.036 & -0.028 & -0.035 & -0.030 \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{6}{l}{Low Volatility Gold Movements} \\ 
+\midrule\addlinespace[2.5pt]
+Returns (Ann.) & $7.6\%$ & $7.0\%$ & $6.5\%$ & $8.5\%$ & $6.8\%$ \\ 
+Returns Excess (Ann.) & $0.0\%$ & $-0.5\%$ & $-1.0\%$ & $0.8\%$ & $-0.8\%$ \\ 
+Adj. Sharpe Ratio & 0.450 & 0.775 & 0.905 & 1.009 & 0.861 \\ 
+Pain Index & 0.046 & 0.031 & 0.018 & 0.021 & 0.021 \\ 
+Avg DD & $9.7\%$ & $3.4\%$ & $2.4\%$ & $3.0\%$ & $2.6\%$ \\ 
+Tracking Error & $0.0\%$ & $11.0\%$ & $12.4\%$ & $11.2\%$ & $11.5\%$ \\ 
+Information Ratio & - & -0.052 & -0.086 & 0.078 & -0.072 \\ 
+Modified CVaR & -0.093 & -0.047 & -0.039 & -0.043 & -0.042 \\ 
+\midrule\addlinespace[2.5pt]
+\multicolumn{6}{l}{Low Volatility Brent Movements} \\ 
+\midrule\addlinespace[2.5pt]
+Returns (Ann.) & $17.8\%$ & $11.0\%$ & $9.0\%$ & $10.9\%$ & $9.8\%$ \\ 
+Returns Excess (Ann.) & $-0.1\%$ & $-5.9\%$ & $-7.6\%$ & $-6.0\%$ & $-6.9\%$ \\ 
+Adj. Sharpe Ratio & 1.314 & 1.101 & 1.259 & 1.224 & 1.256 \\ 
+Pain Index & 0.016 & 0.013 & 0.010 & 0.011 & 0.009 \\ 
+Avg DD & $5.0\%$ & $2.3\%$ & $1.8\%$ & $2.6\%$ & $2.1\%$ \\ 
+Tracking Error & $0.3\%$ & $9.4\%$ & $9.8\%$ & $9.1\%$ & $9.2\%$ \\ 
+Information Ratio & -Inf & -0.736 & -0.918 & -0.777 & -0.887 \\ 
+Modified CVaR & -0.061 & -0.051 & -0.035 & -0.044 & -0.038 \\ 
+\bottomrule
+\end{longtable}
+\begin{minipage}{\linewidth}
+\textsuperscript{\textit{1}}Utilising the US 3-Month Libor Rate as a proxy for the risk-free rate, except for Adjsuted Sharpe Ratio which uses a 0\% risk-free rate\\
+\end{minipage}
 
 \hypertarget{conclusion}{%
 \section*{Conclusion}\label{conclusion}}
 \addcontentsline{toc}{section}{Conclusion}
 
-In this comparative analysis, I scrutinized Mean-Variance Optimization
-(MVO), Minimum-Variance Portfolio (MVP), and Risk Parity Portfolios. The
-findings unveiled the strengths and weaknesses inherent in each
-strategy. While MVO and MVP demonstrated superior risk-adjusted
-performance and concentration issues, the Risk Parity Portfolio
-exhibited balanced risk contributions across assets, albeit with certain
-sensitivity to asset selection. The study highlights the need for a
-nuanced approach in portfolio optimization, considering both returns and
-risk diversification. Such insights contribute significantly to
-navigating the complexities of contemporary financial markets and aid in
-constructing more robust investment strategies.
+The analysis different portfolio startegies can be useful when investots
+evaluate risk-adjusted performance that align with their risk tolerance.
+For risk-averse investors prioritizing capital preservation, the MVP
+strategy may be favored despite its negative excess return, given its
+lower volatility and pain index. In contrast, risk-tolerant investors
+seeking higher returns may lean towards MVO or EW, which exhibit higher
+excess return statistics and upside potential.
 
 \hfill
 
@@ -648,10 +1042,20 @@ constructing more robust investment strategies.
 
 \hypertarget{refs}{}
 \begin{CSLReferences}{1}{0}
+\leavevmode\vadjust pre{\hypertarget{ref-akhtaruzzaman2021gold}{}}%
+Akhtaruzzaman, M., Boubaker, S., Lucey, B.M. \& Sensoy, A. 2021. Is gold
+a hedge or a safe-haven asset in the COVID--19 crisis? \emph{Economic
+Modelling}. 102:105588.
+
 \leavevmode\vadjust pre{\hypertarget{ref-ardia2017impact}{}}%
 Ardia, D., Bolliger, G., Boudt, K. \& Gagnon-Fleury, J.-P. 2017. The
 impact of covariance misspecification in risk-based portfolios.
 \emph{Annals of Operations Research}. 254:1--16.
+
+\leavevmode\vadjust pre{\hypertarget{ref-balcilar2020oil}{}}%
+Balcilar, M., Gupta, R., Wang, S. \& Wohar, M.E. 2020. Oil price
+uncertainty and movements in the US government bond risk premia.
+\emph{The North American Journal of Economics and Finance}. 52:101147.
 
 \leavevmode\vadjust pre{\hypertarget{ref-bruder2012managing}{}}%
 Bruder, B. \& Roncalli, T. 2012. Managing risk exposures using the risk
@@ -662,6 +1066,18 @@ Chaves, D., Hsu, J., Li, F. \& Shakernia, O. 2011. Risk parity portfolio
 vs. Other asset allocation heuristic portfolios. \emph{Journal of
 Investing}. 20(1):108.
 
+\leavevmode\vadjust pre{\hypertarget{ref-chiang2013relationships}{}}%
+Chiang, S.-M., Lin, C.-T. \& Huang, C.-M. 2013. The relationships among
+stocks, bonds and gold: Safe haven, hedge or neither. In
+\emph{International conference on technology innovation and industrial
+management}. 29--31.
+
+\leavevmode\vadjust pre{\hypertarget{ref-choudhry2015relationship}{}}%
+Choudhry, T., Hassan, S.S. \& Shabi, S. 2015. Relationship between gold
+and stock markets during the global financial crisis: Evidence from
+nonlinear causality tests. \emph{International Review of Financial
+Analysis}. 41:247--256.
+
 \leavevmode\vadjust pre{\hypertarget{ref-choueifaty2008toward}{}}%
 Choueifaty, Y. \& Coignard, Y. 2008. Toward maximum diversification.
 \emph{The Journal of Portfolio Management}. 35(1):40--51.
@@ -671,13 +1087,30 @@ Clarke, R., De Silva, H. \& Thorley, S. 2013. Risk parity, maximum
 diversification, and minimum variance: An analytic perspective.
 \emph{The Journal of Portfolio Management}. 39(3):39--53.
 
+\leavevmode\vadjust pre{\hypertarget{ref-cohen2010gold}{}}%
+Cohen, G. \& Qadan, M. 2010. Is gold still a shelter to fear.
+\emph{American Journal of Social and Management Sciences}. 1(1):39--43.
+
 \leavevmode\vadjust pre{\hypertarget{ref-costa2020robust}{}}%
 Costa, G. \& Kwon, R. 2020. A robust framework for risk parity
 portfolios. \emph{Journal of Asset Management}. 21(5):447--466.
 
+\leavevmode\vadjust pre{\hypertarget{ref-dai2021bond}{}}%
+Dai, Z. \& Kang, J. 2021. Bond yield and crude oil prices
+predictability. \emph{Energy Economics}. 97:105205.
+
 \leavevmode\vadjust pre{\hypertarget{ref-fisher2015risk}{}}%
 Fisher, G.S., Maymin, P.Z. \& Maymin, Z.G. 2015. Risk parity optimality.
 \emph{The Journal of Portfolio Management}. 41(2):42--56.
+
+\leavevmode\vadjust pre{\hypertarget{ref-gomes2014volatility}{}}%
+Gomes, M., Chaibi, A., et al. 2014. Volatility spillovers between oil
+prices and stock returns: A focus on frontier markets. \emph{Journal of
+Applied Business Research (JABR)}. 30(2):509--526.
+
+\leavevmode\vadjust pre{\hypertarget{ref-kang2014impact}{}}%
+Kang, W., Ratti, R.A. \& Yoon, K.H. 2014. The impact of oil price shocks
+on US bond market returns. \emph{Energy Economics}. 44:248--258.
 
 \leavevmode\vadjust pre{\hypertarget{ref-katzke2023portfoliocourse}{}}%
 Katzke, N.F. 2023a.
@@ -700,6 +1133,11 @@ Investing}. 21(3):111--128.
 Lohre, H., Opfer, H. \& Orszag, G. 2014. Diversifying risk parity.
 \emph{Journal of Risk}. 16(5):53--79.
 
+\leavevmode\vadjust pre{\hypertarget{ref-lucey2003international}{}}%
+Lucey, B.M. \& Tully, E. 2003. International portfolio formation,
+skewness and the role of gold. \emph{Skewness and the Role of Gold
+(September 2003)}.
+
 \leavevmode\vadjust pre{\hypertarget{ref-maillard2010properties}{}}%
 Maillard, S., Roncalli, T. \& Teïletche, J. 2010. The properties of
 equally weighted risk contribution portfolios. \emph{The Journal of
@@ -720,9 +1158,28 @@ Meucci, A. 2005. \emph{Risk and asset allocation}. Vol. 1. Springer.
 \leavevmode\vadjust pre{\hypertarget{ref-meucci2009managing}{}}%
 Meucci, A. 2009. Managing diversification. \emph{Risk}. 74--79.
 
+\leavevmode\vadjust pre{\hypertarget{ref-morema2020impact}{}}%
+Morema, K. \& Bonga-Bonga, L. 2020. The impact of oil and gold price
+fluctuations on the south african equity market: Volatility spillovers
+and financial policy implications. \emph{Resources Policy}. 68:101740.
+
+\leavevmode\vadjust pre{\hypertarget{ref-morrison2019energy}{}}%
+Morrison, E.J. 2019. Energy price implications for emerging market bond
+returns. \emph{Research in International Business and Finance}.
+50:398--415.
+
 \leavevmode\vadjust pre{\hypertarget{ref-qian2005financial}{}}%
 Qian, E.E. 2005. On the financial interpretation of risk contribution:
 Risk budgets do add up. \emph{Available at SSRN 684221}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-sadorsky1999oil}{}}%
+Sadorsky, P. 1999. Oil price shocks and stock market activity.
+\emph{Energy economics}. 21(5):449--469.
+
+\leavevmode\vadjust pre{\hypertarget{ref-shahzad2017dependence}{}}%
+Shahzad, S.J.H., Raza, N., Shahbaz, M. \& Ali, A. 2017. Dependence of
+stock markets with gold and bonds under bullish and bearish market
+states. \emph{Resources Policy}. 52:308--319.
 
 \leavevmode\vadjust pre{\hypertarget{ref-steinbach2001markowitz}{}}%
 Steinbach, M.C. 2001. Markowitz revisited: Mean-variance models in
